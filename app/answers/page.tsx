@@ -10,6 +10,20 @@ export const metadata: Metadata = {
   description:
     "Browse daily crossword answers by source. Quick links to recent days for NYT Mini and more.",
   alternates: { canonical: "https://tryverba.com/answers" },
+  openGraph: {
+    title: "Daily Crossword Answers | Verba",
+    description:
+      "Browse daily crossword answers by source. Quick links to recent days for NYT Mini and more.",
+    url: "https://tryverba.com/answers",
+    type: "website",
+    siteName: "Verba",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Daily Crossword Answers | Verba",
+    description:
+      "Browse daily crossword answers by source. Quick links to recent days for NYT Mini and more.",
+  },
 };
 
 type Row = {
@@ -19,35 +33,26 @@ type Row = {
 };
 
 export default async function AnswersHubPage() {
-  // Pull a recent slice (group in JS)
   const { data, error } = await supabase
     .from("v_search_results_pretty")
     .select("source_slug, source_name, puzzle_date")
     .order("puzzle_date", { ascending: false })
     .limit(500);
 
-  if (error) {
-    console.error(error);
-  }
+  if (error) console.error(error);
 
-  // Group by source -> unique recent dates (max 12)
-  const grouped = new Map<
-    string,
-    { name: string; dates: string[] }
-  >();
-
+  const grouped = new Map<string, { name: string; dates: string[] }>();
   for (const r of (data ?? []) as Row[]) {
     if (!r.source_slug || !r.puzzle_date) continue;
-    const key = r.source_slug;
     const name = r.source_name ?? r.source_slug;
-    if (!grouped.has(key)) grouped.set(key, { name, dates: [] });
-    const bucket = grouped.get(key)!;
+    if (!grouped.has(r.source_slug)) grouped.set(r.source_slug, { name, dates: [] });
+    const bucket = grouped.get(r.source_slug)!;
     if (!bucket.dates.includes(r.puzzle_date) && bucket.dates.length < 12) {
       bucket.dates.push(r.puzzle_date);
     }
   }
 
-  const sources = Array.from(grouped.entries()); // [slug, {name, dates}]
+  const sources = Array.from(grouped.entries());
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -66,17 +71,11 @@ export default async function AnswersHubPage() {
             <section key={slug} className="rounded-lg border bg-white p-4">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
-                  <Link
-                    href={`/answers/${slug}`}
-                    className="text-verba-blue underline"
-                  >
+                  <Link href={`/answers/${slug}`} className="text-verba-blue underline">
                     {name}
                   </Link>
                 </h2>
-                <Link
-                  href={`/answers/${slug}`}
-                  className="text-sm text-verba-blue underline"
-                >
+                <Link href={`/answers/${slug}`} className="text-sm text-verba-blue underline">
                   View all dates
                 </Link>
               </div>
