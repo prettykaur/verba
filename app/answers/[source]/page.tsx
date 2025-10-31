@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-export const revalidate = 60 * 60; // refresh hourly
+export const revalidate = 3600; // refresh hourly
 
 // simple local map to avoid DB reads inside generateMetadata
 const SOURCE_NAMES: Record<string, string> = {
