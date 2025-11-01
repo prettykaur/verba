@@ -71,9 +71,9 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const date = decodeURIComponent(awaited.date).trim().slice(0, 10);
   const sourceName = SOURCE_NAMES[source] ?? source;
 
-  const title = `${sourceName} Crossword Answers — ${date}`;
+  const title = `${sourceName} Crossword Answers — ${date} | Verba`;
   const description = `All clues & solutions for ${sourceName} on ${date}. Fast, clean answers powered by Verba.`;
-  const url = `https://tryverba.com/answers/${source}/${date}`;
+  const url = `https://tryverba.com/answers/${encodeURIComponent(source)}/${encodeURIComponent(date)}`;
 
   return {
     title,

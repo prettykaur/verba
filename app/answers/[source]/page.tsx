@@ -10,10 +10,11 @@ const SOURCE_NAMES: Record<string, string> = {
   "nyt-mini": "NYT Mini",
 };
 
-type PageProps = { params: { source: string } };
+type PageProps = { params: Promise<{ source: string }> };
 
-export function generateMetadata({ params }: PageProps): Metadata {
-  const source = params.source;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const awaited = await params;
+  const source = awaited.source;
   const sourceName = SOURCE_NAMES[source] ?? source;
   const title = `${sourceName} — Recent Answers | Verba`;
   const description = `Recent dates and daily answer pages for ${sourceName}.`;
@@ -29,7 +30,8 @@ export function generateMetadata({ params }: PageProps): Metadata {
 }
 
 export default async function SourceIndexPage({ params }: PageProps) {
-  const source = params.source;
+  const awaited = await params;
+  const source = awaited.source;
 
   const { data, error } = await supabase
     .from("v_search_results_pretty")
