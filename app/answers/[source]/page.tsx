@@ -58,12 +58,12 @@ export default async function SourceIndexPage({ params }: PageProps) {
       <h1 className="text-2xl font-bold">{sourceName} — Recent Answers</h1>
       <p className="mt-2 text-slate-600">
         Find recent days for {sourceName}. You can also view{" "}
-        <a
+        <Link
           href={`/answers/${source}/today`}
-          className="text-blue-600 underline"
+          className="text-sm text-verba-blue underline"
         >
-          today’s answers
-        </a>.
+          Today
+        </Link>
       </p>
       <p className="mt-4 text-slate-600">
         Each {sourceName} daily answer page includes verified clues, solutions, and structured

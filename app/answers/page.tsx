@@ -60,12 +60,12 @@ export default async function AnswersHubPage() {
       <p className="mt-2 text-slate-600">
         Browse daily crossword answers from top sources like the NYT Mini.
         Click a source below or jump directly to{" "}
-        <a
+        <Link
           href="/answers/nyt-mini/today"
-          className="text-blue-600 underline"
+          className="inline-block rounded-md border px-3 py-1 text-sm hover:bg-slate-50"
         >
-          today’s NYT Mini answers
-        </a>.
+          Today’s NYT Mini
+        </Link>
       </p>
       <p className="mt-4 text-slate-600">
         Verba is a simple crossword answer lookup designed for clarity, speed, and accessibility.
