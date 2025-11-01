@@ -154,16 +154,43 @@ export default async function DailyAnswersPage({ params }: PageParams) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+          <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumbs) }}
+    />
+    {jsonLdFaq && (
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumbs) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
       />
-      {jsonLdFaq && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
-        />
-      )}
+    )}
+
+    {/* Article JSON-LD only when there is data */}
+    {rows.length > 0 && (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: `${sourceName} Crossword Answers — ${dt}`,
+            description: `All clues & solutions for ${sourceName} on ${dt}.`,
+            url: `https://tryverba.com/answers/${encodeURIComponent(source)}/${encodeURIComponent(dt)}`,
+            datePublished: dt,
+            dateModified: dt,
+            author: { "@type": "Organization", name: "Verba" },
+            publisher: {
+              "@type": "Organization",
+              name: "Verba",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://tryverba.com/icon.png",
+              },
+            },
+          }),
+        }}
+      />
+    )}
 
       <h1 className="text-2xl font-bold">{sourceName} — Answers for {dt}</h1>
       <p className="mt-2 text-slate-600">
