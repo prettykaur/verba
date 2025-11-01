@@ -67,6 +67,12 @@ export default async function AnswersHubPage() {
           today’s NYT Mini answers
         </a>.
       </p>
+      <p className="mt-4 text-slate-600">
+        Verba is a simple crossword answer lookup designed for clarity, speed, and accessibility.
+        Each daily page is optimized for search engines with structured data to help solvers
+        quickly find verified crossword clues and solutions.
+      </p>
+
 
       {sources.length === 0 ? (
         <div className="mt-6 rounded-lg border bg-white p-4">

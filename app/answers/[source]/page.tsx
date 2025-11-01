@@ -65,6 +65,12 @@ export default async function SourceIndexPage({ params }: PageProps) {
           today’s answers
         </a>.
       </p>
+      <p className="mt-4 text-slate-600">
+        Each {sourceName} daily answer page includes verified clues, solutions, and structured
+        data for better discoverability. Use the links below to explore recent puzzles or jump
+        directly to today’s edition.
+      </p>
+
 
       {dates.length === 0 ? (
         <div className="mt-6 rounded-lg border bg-white p-4">
