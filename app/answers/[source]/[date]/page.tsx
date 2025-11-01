@@ -4,6 +4,47 @@ import { supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic"; // remove `as const`
 export const revalidate = 0;
+export const dynamicParams = true;
+
+// --- Static pre-render for 10 hero pages (keep dynamic fallback) ---
+export function generateStaticParams() {
+  return [
+    { source: "nyt-mini", date: "2025-10-12" },
+    { source: "nyt-mini", date: "2025-10-13" },
+    { source: "nyt-mini", date: "2025-10-14" },
+    { source: "nyt-mini", date: "2025-10-15" },
+    { source: "nyt-mini", date: "2025-10-16" },
+    { source: "nyt-mini", date: "2025-10-17" },
+    { source: "nyt-mini", date: "2025-10-18" },
+    { source: "nyt-mini", date: "2025-10-19" },
+    { source: "nyt-mini", date: "2025-10-20" },
+    { source: "nyt-mini", date: "2025-10-21" },
+  ];
+}
+
+// Unique intro blurbs per hero page (SEO-friendly, avoids boilerplate)
+const HERO_INTROS: Record<string, string> = {
+  "nyt-mini/2025-10-12":
+    "Quick answers for Sunday’s NYT Mini. Short grid, speedy solve.",
+  "nyt-mini/2025-10-13":
+    "Start the week strong—clean solutions for Monday’s NYT Mini.",
+  "nyt-mini/2025-10-14":
+    "Every clue explained for Tuesday’s NYT Mini in one tidy list.",
+  "nyt-mini/2025-10-15":
+    "Midweek Mini? Here are the answers, fast and spoiler-light.",
+  "nyt-mini/2025-10-16":
+    "All clues & entries for Thursday’s NYT Mini—swift reference.",
+  "nyt-mini/2025-10-17":
+    "Friday Mini solutions you can skim in seconds. No fluff.",
+  "nyt-mini/2025-10-18":
+    "Weekend warm-up: NYT Mini answers for a quick brain boost.",
+  "nyt-mini/2025-10-19":
+    "Sunday snack-size crossword—every answer at a glance.",
+  "nyt-mini/2025-10-20":
+    "Fresh week, fresh grid: Monday NYT Mini solutions below.",
+  "nyt-mini/2025-10-21":
+    "Clear, concise answers for Tuesday’s NYT Mini. Done.",
+};
 
 const SOURCE_NAMES: Record<string, string> = {
   "nyt-mini": "NYT Mini",
@@ -126,7 +167,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
 
       <h1 className="text-2xl font-bold">{sourceName} — Answers for {dt}</h1>
       <p className="mt-2 text-slate-600">
-        All clues &amp; solutions for {sourceName}. Use the site search for more days and sources.
+        {HERO_INTROS[`${source}/${dt}`] ?? `All clues & solutions for ${sourceName}. Use the site search for more days and sources.`}
       </p>
 
       {rows.length === 0 ? (
