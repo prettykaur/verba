@@ -56,9 +56,16 @@ export default async function AnswersHubPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <h1 className="text-2xl font-bold">Daily Answers</h1>
+      <h1 className="text-2xl font-bold">Crossword Answers</h1>
       <p className="mt-2 text-slate-600">
-        Pick a source below, then jump into recent days.
+        Browse daily crossword answers from top sources like the NYT Mini.
+        Click a source below or jump directly to{" "}
+        <a
+          href="/answers/nyt-mini/today"
+          className="text-blue-600 underline"
+        >
+          today’s NYT Mini answers
+        </a>.
       </p>
 
       {sources.length === 0 ? (
