@@ -21,3 +21,26 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+/* ——— UI Enhancements ——— */
+
+/* Subtle focus ring for accessibility */
+:root {
+  --ring: 0 0 0 3px rgba(59, 130, 246, 0.35);
+}
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: 10px;
+}
+
+/* Link hover = marigold underline */
+a:hover {
+  text-decoration: underline;
+  text-decoration-color: #f59e0b;
+}
+
+/* Crossword-like tile feel for small cards or tags */
+.tile {
+  @apply rounded-md border border-slate-200 bg-white shadow-card;
+}
