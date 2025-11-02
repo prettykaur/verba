@@ -1,95 +1,61 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { SearchBar } from '@/components/SearchBar';
+import { Card, CardBody } from '@/components/ui/Card';
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <>
+      <Header />
+      <main className="mx-auto max-w-3xl px-4 py-10">
+        <section className="space-y-4 text-center">
+          <h1 className="text-brand-ink text-3xl font-bold">
+            Stuck on a clue?
+          </h1>
+          <p className="text-brand-slate-600">
+            Get instant crossword answers — search by clue text or pattern.
+          </p>
+          <SearchBar />
+        </section>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
+        <section className="mt-12 space-y-3">
+          <h2 className="text-brand-ink text-lg font-semibold">
+            Today’s Puzzles
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {[
+              'NYT Mini',
+              'LA Times',
+              'The Guardian',
+              'The Atlantic',
+              'Newsday',
+              'The Telegraph',
+            ].map((name) => (
+              <Card key={name}>
+                <CardBody className="text-brand-slate-700 text-center font-medium">
+                  {name}
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-12 space-y-4">
+          <h2 className="text-brand-ink text-lg font-semibold">How It Works</h2>
+          <Card>
+            <CardBody>
+              <p className="text-brand-slate-700">
+                Verba is your crossword assistant. Type a clue or pattern like{' '}
+                <span className="bg-brand-slate-50 rounded px-1 py-0.5 font-mono">
+                  D?NIM
+                </span>{' '}
+                to instantly find possible matches from today’s puzzles.
+              </p>
+            </CardBody>
+          </Card>
+        </section>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      <Footer />
+    </>
   );
 }
