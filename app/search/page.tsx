@@ -1,104 +1,102 @@
 // app/search/page.tsx
-import { supabase } from "@/lib/supabase";
+import { headers } from 'next/headers';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+import { SearchBar } from '@/components/SearchBar';
+import { ResultItem } from '@/components/ResultItem';
 
 type Row = {
-  occurrence_id: number;
-  clue_id: number;
-  clue_text: string;
+  id: number | string;
+  clue: string;
   answer: string;
-  answer_len: number;
-  word_id: number | null;
-  word_text: string | null;
-  word_len: number | null;
-  puzzle_date: string | null;
-  source_slug: string | null;
-  source_name: string | null;
-  enumeration: string | null;
-  answer_display: string | null;
-  answer_pretty: string | null; // from v_search_results_pretty
+  source: string;
+  date?: string | null;
+  confidence?: number | null;
 };
+
+function buildBaseUrl(h: Headers): string {
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
+  const proto = h.get('x-forwarded-proto') ?? 'http';
+  return `${proto}://${host}`;
+}
+
+async function getResults(q: string) {
+  if (!q) return { results: [] as Row[], count: 0 };
+  const h = await headers();
+  const base = buildBaseUrl(h);
+  const res = await fetch(`${base}/api/search?q=${encodeURIComponent(q)}`, {
+    cache: 'no-store',
+  });
+  if (!res.ok) return { results: [] as Row[], count: 0 };
+  return res.json();
+}
+
+// ensure this page runs on the server (so we can read headers)
+export const dynamic = 'force-dynamic';
 
 export default async function SearchPage({
   searchParams,
 }: {
+  // In Next 15, searchParams is async
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { q = " " } = await searchParams; // await
-  const query = q.trim();
-
-  let rows: Row[] = [];
-
-  if (query) {
-    const { data, error } = await supabase
-      .from("v_search_results_pretty")
-      .select(
-        `
-        occurrence_id,
-        clue_id,
-        clue_text,
-        answer,
-        answer_len,
-        word_id,
-        word_text,
-        word_len,
-        puzzle_date,
-        source_slug,
-        source_name,
-        enumeration,
-        answer_display,
-        answer_pretty
-        `
-      )
-      .ilike("clue_text", `%${query}%`)
-      .limit(25)
-      .throwOnError()
-      .overrideTypes<Row[], { merge: false }>();
-
-    if (error) {
-      console.error("Supabase error: ", error);
-    } else {
-      rows = data ?? [];
-    }
-  }
+  const sp = await searchParams; // ✅ must await in Next 15
+  const q = (sp?.q ?? '').trim();
+  const { results = [], count = 0 } = await getResults(q);
+  const hasPattern = /[?*]/.test(q);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <form className="flex gap-2">
-        <input
-          name="q"
-          defaultValue={query}
-          placeholder="Search a clue…"
-          className="flex-1 rounded-xl border px-4 py-3"
-        />
-        <button className="rounded-xl bg-verba-blue px-5 py-3 text-white">
-          Search
-        </button>
-      </form>
+    <>
+      <Header />
+      <main className="mx-auto max-w-3xl px-4 py-8">
+        <div className="space-y-3 text-center">
+          <h1 className="text-2xl font-bold">Search Results</h1>
+          <SearchBar initialQuery={q} />
 
-      {!query ? (
-        <p className="mt-6 text-slate-600">Try “Sushi seaweed”.</p>
-      ) : rows.length === 0 ? (
-        <p className="mt-6 text-slate-600">No matching clues found.</p>
-      ) : (
-        <ul className="mt-8 divide-y rounded-xl border bg-white">
-          {rows.map((r) => (
-            <li
-              key={`${r.occurrence_id}-${r.answer}`}
-              className="p-4 flex items-center justify-between"
-            >
-              <div>
-                <div className="text-slate-800">{r.clue_text}</div>
-                <div className="text-xs text-slate-500">
-                  {r.source_name} · {r.puzzle_date ?? "—"}
-                </div>
-              </div>
-              <div className="text-lg font-semibold tracking-wide">
-                {r.answer_pretty ?? r.answer}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+          {/* small hint block under the SearchBar */}
+          {!q ? (
+            <p className="text-brand-slate-600 text-sm">
+              Type a clue or an answer pattern like <code>D?NIM</code> and press
+              search.
+            </p>
+          ) : (
+            <p className="text-brand-slate-600 text-sm">
+              Showing {count} result{count === 1 ? '' : 's'} for{' '}
+              <strong>“{q}”</strong>{' '}
+              {hasPattern
+                ? '(pattern matched on answer)'
+                : '(matched on clue or answer)'}
+            </p>
+          )}
+        </div>
+
+        <section className="mt-6 space-y-3">
+          {q && results.length === 0 ? (
+            <div className="text-brand-slate-600 text-sm">
+              No results found. Try:
+              <ul className="mt-2 list-disc pl-5 text-left">
+                <li>Fewer words (e.g., “capital of Peru” → “Peru capital”)</li>
+                <li>
+                  Pattern search with <code>?</code> or <code>*</code> (e.g.,{' '}
+                  <code>D?NIM</code>)
+                </li>
+              </ul>
+            </div>
+          ) : (
+            results.map((r: Row) => (
+              <ResultItem
+                key={r.id}
+                clue={r.clue}
+                answer={r.answer}
+                source={r.source}
+                date={r.date ?? undefined}
+                confidence={r.confidence ?? undefined}
+              />
+            ))
+          )}
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }
