@@ -44,3 +44,88 @@ a:hover {
 .tile {
   @apply rounded-md border border-slate-200 bg-white shadow-card;
 }
+
+/* -----------------------------------
+   Paper-like shimmer for skeletons
+----------------------------------- */
+/* Card container: warm paper feel */
+.skeleton-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: #fafaf6; /* warm off-white */
+  box-shadow: 0 4px 20px rgba(2, 6, 23, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+}
+
+/* The “text lines” that shimmer */
+.skeleton-line {
+  position: relative;
+  border-radius: 8px;
+  background-color: #eef1f4; /* base line color */
+  overflow: hidden;
+}
+
+/* Moving light band (the shimmer) */
+.skeleton-line::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    transparent 100%
+  );
+  animation: shimmer-move 1.1s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Fine paper grain on the card */
+.skeleton-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+  background-image: repeating-radial-gradient(
+    circle at 1px 1px,
+    rgba(0, 0, 0, 0.018) 0,
+    rgba(0, 0, 0, 0.018) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  background-size: 3px 3px;
+}
+
+@keyframes shimmer-move {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line::before {
+    animation: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in-out;
+}
+
+.result-clue {
+  font-family: 'Inter', sans-serif;
+}

@@ -1,30 +1,56 @@
-import { Card, CardBody } from './ui/Card';
-import { Badge } from './ui/Badge';
-
-export function ResultItem(props: {
+// components/ResultItem.tsx
+export function ResultItem({
+  clue,
+  answer,
+  source,
+  date,
+  confidence,
+}: {
   clue: string;
   answer: string;
   source: string;
   date?: string;
-  confidence?: number; // 0..1
+  confidence?: number | null;
 }) {
-  const { clue, answer, source, date, confidence } = props;
-  const pct = confidence != null ? Math.round(confidence * 100) : undefined;
-
   return (
-    <Card>
-      <CardBody className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-brand-ink">{clue}</div>
-          <div className="text-brand-slate-600 mt-1 text-xs">
-            {source} {date ? `· ${date}` : null}
+    <div className="border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        {/* Left: clue + meta */}
+        <div className="min-w-0">
+          {/* Bigger, editorial headline feel. Uses your .result-clue font */}
+          <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
+            {clue}
+          </div>
+
+          {/* Meta row */}
+          <div className="text-brand-slate-600 mt-1 flex items-center gap-1 text-sm">
+            {source && <span className="shrink-0">{source}</span>}
+            {source && date && <span aria-hidden>·</span>}
+            {date && (
+              <time className="shrink-0" dateTime={date}>
+                {date}
+              </time>
+            )}
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="font-mono text-lg tracking-wide">{answer}</div>
-          {pct != null && <Badge>{pct}%</Badge>}
+
+        {/* Right: answer */}
+        <div
+          // Smaller text:
+          // className="text-brand-slate-900 shrink-0 select-text whitespace-nowrap rounded-md px-2 py-1 text-right font-mono text-xl uppercase leading-none tracking-[0.08em] sm:text-2xl"
+          // Larger text:
+          className="text-brand-ink shrink-0 select-text rounded-md px-2 py-1 text-right font-mono text-2xl uppercase leading-none tracking-[0.07em]"
+          title={answer}
+        >
+          {answer}
         </div>
-      </CardBody>
-    </Card>
+      </div>
+
+      {typeof confidence === 'number' && (
+        <div className="text-brand-slate-400 mt-2 text-right text-[10px]">
+          conf: {confidence.toFixed(2)}
+        </div>
+      )}
+    </div>
   );
 }
