@@ -1,5 +1,9 @@
+// tailwind.config.mjs
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
+
+export default {
   content: ['./app/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -21,10 +25,9 @@ module.exports = {
         tile: '0 1px 0 rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06)',
       },
       transitionTimingFunction: {
-        soft: 'cubic-bezier(.2,.8,.2,1)', // microinteraction feel
+        soft: 'cubic-bezier(.2,.8,.2,1)',
       },
       fontFamily: {
-        // Uses next/font variables defined in layout.tsx
         sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         display: [
           'var(--font-plex)',
@@ -41,5 +44,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
+  plugins: [forms, typography],
 };
