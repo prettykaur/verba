@@ -32,16 +32,14 @@ async function getResults(q: string) {
   return res.json();
 }
 
-// ensure this page runs on the server (so we can read headers)
 export const dynamic = 'force-dynamic';
 
 export default async function SearchPage({
   searchParams,
 }: {
-  // In Next 15, searchParams is async
   searchParams: Promise<{ q?: string }>;
 }) {
-  const sp = await searchParams; // ✅ must await in Next 15
+  const sp = await searchParams;
   const q = (sp?.q ?? '').trim();
   const { results = [], count = 0 } = await getResults(q);
   const hasPattern = /[?*]/.test(q);
@@ -53,12 +51,10 @@ export default async function SearchPage({
         <div className="space-y-3 text-center">
           <h1 className="text-2xl font-bold">Search Results</h1>
           <SearchBar initialQuery={q} />
-
-          {/* Animated hint + tooltip + badge */}
           <SearchHint q={q} count={count} />
         </div>
 
-        <section className="mt-6 space-y-3">
+        <section id="results" className="mt-6 space-y-3">
           {q && results.length === 0 ? (
             <div className="text-brand-slate-600 text-sm">
               No results found. Try:
