@@ -1,3 +1,8 @@
+-- ===========================================
+-- Script: 00013_extend_views_number_direction.sql
+-- Author: Pretty Kaur
+-- ===========================================
+
 -- Drop the dependent views first to avoid name/column conflicts
 drop view if exists v_search_results_pretty cascade;
 drop view if exists v_search_results cascade;

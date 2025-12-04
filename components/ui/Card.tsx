@@ -1,3 +1,4 @@
+// components/ui/Card.tsx
 import * as React from 'react';
 import clsx from 'clsx';
 
@@ -8,7 +9,7 @@ export function Card({
   return (
     <div
       className={clsx(
-        'border-brand-slate-200 shadow-tile rounded-xl border bg-white',
+        'border-brand-slate-200 rounded-xl border bg-white shadow-tile',
         className,
       )}
       {...props}

@@ -1,3 +1,4 @@
+//app/fonts.ts
 import { Inter, IBM_Plex_Mono } from 'next/font/google';
 
 export const inter = Inter({

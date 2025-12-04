@@ -1,3 +1,4 @@
+// app/api/search/route.ts
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase'; // uses your anon key (read-only)
 

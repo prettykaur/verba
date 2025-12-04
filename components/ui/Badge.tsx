@@ -1,3 +1,4 @@
+// components/ui/Badge.tsx
 import * as React from 'react';
 
 export function Badge({ children }: { children: React.ReactNode }) {
