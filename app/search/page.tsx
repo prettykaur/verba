@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SearchBar } from '@/components/SearchBar';
 import { ResultItem } from '@/components/ResultItem';
+import { SearchHint } from '@/components/SearchHint';
 
 type Row = {
   id: number | string;
@@ -53,21 +54,8 @@ export default async function SearchPage({
           <h1 className="text-2xl font-bold">Search Results</h1>
           <SearchBar initialQuery={q} />
 
-          {/* small hint block under the SearchBar */}
-          {!q ? (
-            <p className="text-brand-slate-600 text-sm">
-              Type a clue or an answer pattern like <code>D?NIM</code> and press
-              search.
-            </p>
-          ) : (
-            <p className="text-brand-slate-600 text-sm">
-              Showing {count} result{count === 1 ? '' : 's'} for{' '}
-              <strong>“{q}”</strong>{' '}
-              {hasPattern
-                ? '(pattern matched on answer)'
-                : '(matched on clue or answer)'}
-            </p>
-          )}
+          {/* Animated hint + tooltip + badge */}
+          <SearchHint q={q} count={count} />
         </div>
 
         <section className="mt-6 space-y-3">
@@ -91,6 +79,7 @@ export default async function SearchPage({
                 source={r.source}
                 date={r.date ?? undefined}
                 confidence={r.confidence ?? undefined}
+                query={q}
               />
             ))
           )}

@@ -1,16 +1,20 @@
 // components/ResultItem.tsx
+import { Highlight } from './Highlight';
+
 export function ResultItem({
   clue,
   answer,
   source,
   date,
   confidence,
+  query,
 }: {
   clue: string;
   answer: string;
   source: string;
   date?: string;
   confidence?: number | null;
+  query?: string;
 }) {
   return (
     <div className="border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
@@ -19,7 +23,7 @@ export function ResultItem({
         <div className="min-w-0">
           {/* Bigger, editorial headline feel. Uses your .result-clue font */}
           <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
-            {clue}
+            <Highlight text={clue} query={query ?? ''} />
           </div>
 
           {/* Meta row */}
@@ -36,9 +40,6 @@ export function ResultItem({
 
         {/* Right: answer */}
         <div
-          // Smaller text:
-          // className="text-brand-slate-900 shrink-0 select-text whitespace-nowrap rounded-md px-2 py-1 text-right font-mono text-xl uppercase leading-none tracking-[0.08em] sm:text-2xl"
-          // Larger text:
           className="text-brand-ink shrink-0 select-text rounded-md px-2 py-1 text-right font-mono text-2xl uppercase leading-none tracking-[0.07em]"
           title={answer}
         >

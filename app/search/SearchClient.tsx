@@ -190,6 +190,7 @@ export default function SearchClient({
                 source={r.source}
                 date={r.date ?? undefined}
                 confidence={r.confidence ?? undefined}
+                query={view.term}
               />
             ))
           )}
