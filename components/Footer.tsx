@@ -10,6 +10,7 @@ export function Footer() {
           <Link href="/faq">FAQ</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
+          <Link href="/contact">Contact</Link>
         </div>
         <p className="mt-3">© {new Date().getFullYear()} Verba</p>
       </div>
