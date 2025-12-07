@@ -1,7 +1,7 @@
 -- ===========================================
--- Script: 00008_post_seed_sanity_check.sql
+-- Script: UPDATED 00008_post_seed_sanity_check.sql
 -- Author: Pretty Kaur
--- Date: 2025-10-28
+-- Date: 2025-12-07
 -- Purpose: Quick sanity check after initial seed import.
 --           - Validates that staging data matches expected structure
 --           - Inspects row count, sample clue_text, and answer fields
@@ -21,3 +21,9 @@ select clue_text, answer, enumeration, answer_display, puzzle_date, source_name
 from v_search_results_pretty
 order by random()
 limit 10;
+
+-- Check NYT Mini rows
+select *
+from staging_occurrence_seed
+where source_slug = 'nyt-mini'
+order by puzzle_date, direction, number;
