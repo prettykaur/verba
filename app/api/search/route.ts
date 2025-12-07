@@ -84,17 +84,17 @@ function scorePatternQuery(q: string, row: DbRow): number {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const q = (searchParams.get('q') || '').trim();
+  const rawQ = (searchParams.get('q') || '').trim();
 
-  if (!q) {
+  if (!rawQ) {
     return NextResponse.json(
       { results: [] as ApiResult[], count: 0 },
       { headers: { 'cache-control': 'no-store' } },
     );
   }
 
-  const isPattern = /[?*]/.test(q);
-  const likePattern = q.replaceAll('*', '%').replaceAll('?', '_');
+  const isPattern = /[?*]/.test(rawQ);
+  const likePattern = rawQ.replaceAll('*', '%').replaceAll('?', '_');
 
   // Base select from pretty view, with extra columns for scoring
   let query = supabase
@@ -114,11 +114,44 @@ export async function GET(req: Request) {
     .limit(80);
 
   if (isPattern) {
-    // pattern match on the pretty answer text
+    // pattern match on the pretty answer text (keep existing behaviour)
     query = query.ilike('answer_pretty', likePattern);
   } else {
-    // substring match on clue text OR pretty answer
-    query = query.or(`clue_text.ilike.%${q}%,answer_pretty.ilike.%${q}%`);
+    // ------- NEW: safe, smarter text search -------
+
+    // normalise whitespace
+    const collapsed = rawQ.replace(/\s+/g, ' ').trim();
+
+    // strip punctuation per word so commas etc. don't break PostgREST .or()
+    const tokens = collapsed
+      .split(/\s+/)
+      .map((word) => word.replace(/[^A-Za-z0-9]/g, '')) // keep only letters/digits
+      .filter((t) => t.length > 0);
+
+    if (tokens.length === 0) {
+      // if the user typed only punctuation, just return nothing gracefully
+      return NextResponse.json(
+        { results: [] as ApiResult[], count: 0 },
+        { headers: { 'cache-control': 'no-store' } },
+      );
+    }
+
+    const orParts: string[] = [];
+
+    for (const token of tokens) {
+      // basic: match token anywhere in clue or pretty answer
+      orParts.push(`clue_text.ilike.%${token}%`);
+      orParts.push(`answer_pretty.ilike.%${token}%`);
+
+      // bonus: handle dotted abbreviations like T.G.I.F. for query "TGIF"
+      if (/^[A-Za-z]+$/.test(token) && token.length >= 2 && token.length <= 6) {
+        const dotted = token.split('').join('.'); // TGIF -> T.G.I.F
+        orParts.push(`clue_text.ilike.%${dotted}%`);
+        orParts.push(`answer_pretty.ilike.%${dotted}%`);
+      }
+    }
+
+    query = query.or(orParts.join(','));
   }
 
   const { data, count, error } = await query;
@@ -133,12 +166,12 @@ export async function GET(req: Request) {
 
   const rows = (data ?? []) as DbRow[];
 
-  // rank & map results
+  // rank & map results (unchanged)
   const ranked = rows
     .map((r) => {
       const confidence = isPattern
-        ? scorePatternQuery(q, r)
-        : scoreTextQuery(q, r);
+        ? scorePatternQuery(rawQ, r)
+        : scoreTextQuery(rawQ, r);
 
       return {
         id: r.occurrence_id,
@@ -149,7 +182,6 @@ export async function GET(req: Request) {
         confidence,
       } satisfies ApiResult;
     })
-    // highest confidence first
     .sort((a, b) => b.confidence - a.confidence);
 
   const top = ranked.slice(0, 25);
