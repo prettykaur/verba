@@ -1,6 +1,4 @@
 // app/search/loading.tsx
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 
 function RowSkeleton() {
   return (
@@ -19,7 +17,6 @@ function RowSkeleton() {
 export default function Loading() {
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
         <div className="space-y-2 text-center">
           <div className="bg-brand-slate-100 mx-auto h-7 w-52 rounded" />
@@ -31,7 +28,6 @@ export default function Loading() {
           ))}
         </div>
       </main>
-      <Footer />
     </>
   );
 }
