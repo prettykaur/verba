@@ -2,8 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
@@ -58,7 +56,6 @@ export default function SubmitPage() {
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-3xl px-4 py-10">
         <section className="space-y-4">
           <h1 className="text-2xl font-bold">Submit a clue</h1>
@@ -136,7 +133,6 @@ export default function SubmitPage() {
           </p>
         </section>
       </main>
-      <Footer />
     </>
   );
 }

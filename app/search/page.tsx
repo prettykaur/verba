@@ -1,7 +1,5 @@
 // app/search/page.tsx
 import { headers } from 'next/headers';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { SearchBar } from '@/components/SearchBar';
 import { ResultItem } from '@/components/ResultItem';
 import { SearchHint } from '@/components/SearchHint';
@@ -46,7 +44,6 @@ export default async function SearchPage({
 
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="space-y-3 text-center">
           <h1 className="text-2xl font-bold">Search Results</h1>
@@ -81,7 +78,6 @@ export default async function SearchPage({
           )}
         </section>
       </main>
-      <Footer />
     </>
   );
 }

@@ -1,13 +1,10 @@
 // app/page.tsx
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { SearchBar } from '@/components/SearchBar';
 import { Card, CardBody } from '@/components/ui/Card';
 
 export default function HomePage() {
   return (
     <>
-      <Header />
       <main className="mx-auto max-w-3xl px-4 py-10">
         <section className="space-y-4 text-center">
           <h1 className="text-brand-ink text-3xl font-bold">
@@ -56,7 +53,6 @@ export default function HomePage() {
           </Card>
         </section>
       </main>
-      <Footer />
     </>
   );
 }
