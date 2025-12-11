@@ -22,6 +22,98 @@ a {
   text-decoration: none;
 }
 
+/* ------------------------------
+   Verba Animated Navy Underline
+------------------------------ */
+.verba-link {
+  position: relative;
+  display: inline-block; /* make pseudo-element behave nicely */
+  text-decoration: none;
+}
+
+.verba-link:hover {
+  text-decoration: none; /* hard-kill any other a:hover rules */
+}
+
+.verba-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px; /* small offset for elegance */
+  width: 0%;
+  height: 1px;
+  background-color: #1e3a8a; /* NAVY */
+  transition: width 0.25s ease;
+}
+
+.verba-link:hover::after {
+  width: 100%;
+}
+
+/* ------------------------------
+   Verba Marigold Button Hover
+------------------------------ */
+.btn-marigold-hover:hover {
+  background-color: #fde68a;
+  transition: background-color 0.2s ease;
+}
+
+/* -----------------------------------------
+   Verba Card Hover (Faint Marigold Tint)
+----------------------------------------- */
+.card-hover-marigold {
+  transition:
+    background-color 0.18s ease-out,
+    border-color 0.18s ease-out;
+}
+
+.card-hover-marigold:hover {
+  background-color: #fffdf5; /* paper-like, very faint marigold */
+  border-color: rgba(15, 23, 42, 0.14); /* subtle slate/ink darkening */
+}
+
+/* ---------------------------------
+   Verba Button Press / Lift States
+---------------------------------- */
+.btn-press {
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    background-color 0.2s ease-out;
+}
+
+/* slight lift on hover */
+.btn-press:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15);
+}
+
+/* gentle “press in” on click */
+.btn-press:active {
+  transform: translateY(0); /* back to flat but with a tiny squash */
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+}
+
+/* -------------------------------
+   Verba Card Lift Interaction
+------------------------------- */
+.card-lift {
+  transition:
+    transform 0.18s ease-out,
+    box-shadow 0.18s ease-out,
+    background-color 0.18s ease-out;
+}
+
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+}
+
+.card-lift:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+}
+
 /* ——— UI Enhancements ——— */
 
 /* Subtle focus ring for accessibility */
@@ -35,10 +127,10 @@ a {
 }
 
 /* Link hover = marigold underline */
-a:hover {
+/* a:hover {
   text-decoration: underline;
   text-decoration-color: #f59e0b;
-}
+} */
 
 /* Crossword-like tile feel for small cards or tags */
 .tile {

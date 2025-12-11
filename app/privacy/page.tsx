@@ -83,7 +83,7 @@ export default function PrivacyPage() {
         <p className="text-slate-700">
           If you have privacy questions, email{' '}
           <a
-            className="text-verba-blue underline"
+            className="verba-link text-verba-blue"
             href="mailto:hello@tryverba.com"
           >
             hello@tryverba.com

@@ -27,7 +27,7 @@ export function ResultItem({
       : null;
 
   return (
-    <div className="border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
+    <div className="border-brand-slate-200 card-hover-marigold card-lift rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         {/* Left: clue + meta */}
         <div className="min-w-0">

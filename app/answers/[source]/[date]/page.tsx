@@ -244,23 +244,6 @@ export default async function DailyAnswersPage({ params }: PageParams) {
         </div>
       ) : (
         <ul className="mt-8 divide-y rounded-xl border bg-white">
-          {/* {rows.map((r) => (
-            <li
-              key={r.occurrence_id}
-              className="flex items-start justify-between gap-4 p-4"
-            >
-              <div>
-                <div className="text-slate-800">{r.clue_text}</div>
-                <div className="text-xs text-slate-500">
-                  {r.direction ?? '—'} {r.number ?? '—'} ·{' '}
-                  {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
-                </div>
-              </div>
-              <div className="text-lg font-semibold tracking-wide">
-                {r.answer_pretty ?? r.answer ?? '—'}
-              </div>
-            </li>
-          ))} */}
           {rows.map((r) => {
             const positionLabel =
               r.number && r.direction

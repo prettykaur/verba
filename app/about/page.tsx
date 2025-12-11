@@ -1,31 +1,35 @@
 // app/about/page.tsx
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
 export const revalidate = 3600; // 1h
 
 export const metadata: Metadata = {
-  title: "About Verba | Fast Crossword Answers",
+  title: 'About Verba | Fast Crossword Answers',
   description:
-    "Verba is a clean, fast way to look up crossword clues and answers. Simple pages, helpful SEO schema, and quick navigation to daily puzzles.",
-  alternates: { canonical: "https://tryverba.com/about" },
+    'Verba is a clean, fast way to look up crossword clues and answers. Simple pages, helpful SEO schema, and quick navigation to daily puzzles.',
+  alternates: { canonical: 'https://tryverba.com/about' },
   openGraph: {
-    title: "About Verba | Fast Crossword Answers",
+    title: 'About Verba | Fast Crossword Answers',
     description:
-      "Verba is a clean, fast way to look up crossword clues and answers.",
-    url: "https://tryverba.com/about",
-    siteName: "Verba",
-    type: "website",
+      'Verba is a clean, fast way to look up crossword clues and answers.',
+    url: 'https://tryverba.com/about',
+    siteName: 'Verba',
+    type: 'website',
   },
-  twitter: { card: "summary", title: "About Verba", description: "Fast clue lookups." },
+  twitter: {
+    card: 'summary',
+    title: 'About Verba',
+    description: 'Fast clue lookups.',
+  },
 };
 
 export default function AboutPage() {
   const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Verba",
-    url: "https://tryverba.com/",
-    logo: "https://tryverba.com/icon.png",
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Verba',
+    url: 'https://tryverba.com/',
+    logo: 'https://tryverba.com/icon.png',
   };
 
   return (
@@ -43,9 +47,14 @@ export default function AboutPage() {
 
       <h2 className="mt-6 text-lg font-semibold">How it works</h2>
       <ul className="mt-2 list-disc pl-5 text-slate-700">
-        <li>Browse by <strong>source</strong> and <strong>date</strong>.</li>
+        <li>
+          Browse by <strong>source</strong> and <strong>date</strong>.
+        </li>
         <li>See concise clue → answer lists (no fluff or spoilers).</li>
-        <li>Structured data (FAQ/Breadcrumbs/Article) helps search engines surface the right page.</li>
+        <li>
+          Structured data (FAQ/Breadcrumbs/Article) helps search engines surface
+          the right page.
+        </li>
       </ul>
 
       <h2 className="mt-6 text-lg font-semibold">What we index</h2>
@@ -57,10 +66,14 @@ export default function AboutPage() {
 
       <h2 className="mt-6 text-lg font-semibold">Contact</h2>
       <p className="mt-2 text-slate-700">
-        Feature request or correction? Email{" "}
-        <a className="text-verba-blue underline" href="mailto:hello@tryverba.com">
+        Feature request or correction? Email{' '}
+        <a
+          className="verba-link text-verba-blue"
+          href="mailto:hello@tryverba.com"
+        >
           hello@tryverba.com
-        </a>.
+        </a>
+        .
       </p>
     </main>
   );

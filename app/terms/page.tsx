@@ -72,7 +72,7 @@ export default function TermsPage() {
         <p className="text-slate-700">
           Questions about these terms? Email{' '}
           <a
-            className="text-verba-blue underline"
+            className="verba-link text-verba-blue"
             href="mailto:hello@tryverba.com"
           >
             hello@tryverba.com

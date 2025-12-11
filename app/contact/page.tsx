@@ -17,7 +17,7 @@ export default function ContactPage() {
             You can email me directly at{' '}
             <a
               href="mailto:hello@verba.app"
-              className="font-semibold underline decoration-amber-400"
+              className="verba-link font-semibold decoration-amber-400"
             >
               hello@verba.app
             </a>

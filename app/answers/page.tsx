@@ -64,10 +64,11 @@ export default async function AnswersHubPage() {
         a source below or jump directly to{' '}
         <Link
           href="/answers/nyt-mini/today"
-          className="inline-block rounded-md border px-3 py-1 text-sm hover:bg-slate-50"
+          className="verba-link text-verba-blue"
         >
           Today’s NYT Mini
         </Link>
+        .
       </p>
       <p className="mt-4 text-slate-600">
         Verba is a simple crossword answer lookup designed for clarity, speed,
@@ -83,19 +84,22 @@ export default async function AnswersHubPage() {
       ) : (
         <div className="mt-6 space-y-8">
           {sources.map(([slug, { name, dates }]) => (
-            <section key={slug} className="rounded-lg border bg-white p-4">
+            <section
+              key={slug}
+              className="card-hover-marigold card-lift rounded-lg border bg-white p-4"
+            >
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
                   <Link
                     href={`/answers/${slug}`}
-                    className="text-verba-blue underline"
+                    className="verba-link text-verba-blue"
                   >
                     {name}
                   </Link>
                 </h2>
                 <Link
                   href={`/answers/${slug}`}
-                  className="text-sm text-verba-blue underline"
+                  className="verba-link text-sm text-verba-blue"
                 >
                   View all dates
                 </Link>
@@ -105,7 +109,7 @@ export default async function AnswersHubPage() {
                   <li key={d}>
                     <Link
                       href={`/answers/${slug}/${d}`}
-                      className="inline-block rounded-md border px-3 py-1 text-sm hover:bg-slate-50"
+                      className="btn-marigold-hover btn-press inline-block rounded-md border px-3 py-1 text-sm"
                     >
                       {formatPuzzleDateShort(d)}
                     </Link>
