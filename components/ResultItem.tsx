@@ -1,5 +1,6 @@
 // components/ResultItem.tsx
 import { Highlight } from './Highlight';
+import { formatPuzzleDateLong } from '@/lib/formatDate';
 
 export function ResultItem({
   clue,
@@ -32,7 +33,7 @@ export function ResultItem({
             {source && date && <span aria-hidden>·</span>}
             {date && (
               <time className="shrink-0" dateTime={date}>
-                {date}
+                {formatPuzzleDateLong(date)}
               </time>
             )}
           </div>
