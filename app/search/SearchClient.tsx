@@ -21,6 +21,8 @@ type Row = {
   answer: string;
   source: string;
   date?: string | null;
+  number?: number | null;
+  direction?: 'across' | 'down' | null;
   confidence?: number | null;
 };
 
@@ -189,6 +191,8 @@ export default function SearchClient({
                 answer={r.answer}
                 source={r.source}
                 date={r.date ?? undefined}
+                number={r.number ?? undefined}
+                direction={r.direction ?? undefined}
                 confidence={r.confidence ?? undefined}
                 query={view.term}
               />

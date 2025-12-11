@@ -9,6 +9,8 @@ type DbRow = {
   puzzle_date: string | null;
   source_name: string | null;
   answer_len: number | null;
+  number: number | null;
+  direction: 'across' | 'down' | null;
 };
 
 type ApiResult = {
@@ -17,6 +19,8 @@ type ApiResult = {
   answer: string;
   source: string;
   date: string | null;
+  number: number | null;
+  direction: 'across' | 'down' | null;
   confidence: number;
 };
 
@@ -106,7 +110,9 @@ export async function GET(req: Request) {
       answer_pretty,
       puzzle_date,
       source_name,
-      answer_len
+      answer_len,
+      number,
+      direction
     `,
       { count: 'exact' },
     )
@@ -179,6 +185,8 @@ export async function GET(req: Request) {
         answer: r.answer_pretty ?? '',
         source: r.source_name ?? '',
         date: r.puzzle_date,
+        number: r.number,
+        direction: r.direction,
         confidence,
       } satisfies ApiResult;
     })
