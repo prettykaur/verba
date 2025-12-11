@@ -47,7 +47,7 @@ const faqs = [
   },
   {
     q: 'Can I request a new source?',
-    a: 'Yes—email hello@tryverba.com with details. We’ll review feasibility and licensing considerations.',
+    a: 'Yes! Email hello@tryverba.com with details. We’ll review feasibility and licensing considerations.',
   },
 ];
 
@@ -70,12 +70,66 @@ export default function FAQPage() {
       />
       <h1 className="text-2xl font-bold">FAQ</h1>
       <ul className="mt-6 space-y-4">
-        {faqs.map(({ q, a }) => (
-          <li key={q} className="rounded-lg border bg-white p-4">
-            <h2 className="font-semibold">{q}</h2>
-            <p className="mt-1 text-slate-700">{a}</p>
-          </li>
-        ))}
+        {faqs.map(({ q, a }) => {
+          const isRequestFaq = q === 'Can I request a new source?';
+
+          const isFindDayFaq = q === 'How do I find a specific day’s answers?';
+
+          const isNytMiniFaq = q === 'Do you support NYT Mini?';
+
+          return (
+            <li key={q} className="rounded-lg border bg-white p-4">
+              <h2 className="font-semibold">{q}</h2>
+              <p className="mt-1 text-slate-700">
+                {isRequestFaq ? (
+                  <>
+                    Yes! Email{' '}
+                    <a
+                      href="mailto:hello@tryverba.com"
+                      className="verba-link text-verba-blue"
+                    >
+                      hello@tryverba.com
+                    </a>{' '}
+                    with details. We’ll review feasibility and licensing
+                    considerations.
+                  </>
+                ) : isFindDayFaq ? (
+                  <>
+                    Go to{' '}
+                    <Link
+                      href="/answers"
+                      className="verba-link text-verba-blue"
+                    >
+                      Answers
+                    </Link>
+                    , pick a source, then select a date. You can also use the{' '}
+                    <Link
+                      href="/answers/nyt-mini/today"
+                      className="verba-link text-verba-blue"
+                    >
+                      Today
+                    </Link>{' '}
+                    link for the current edition.
+                  </>
+                ) : isNytMiniFaq ? (
+                  <>
+                    We provide concise clue/answer references and safe metadata
+                    for common sources like the{' '}
+                    <Link
+                      href="/answers/nyt-mini"
+                      className="verba-link text-verba-blue"
+                    >
+                      NYT Mini
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  a
+                )}
+              </p>
+            </li>
+          );
+        })}
       </ul>
 
       <div className="mt-8 text-slate-700">
