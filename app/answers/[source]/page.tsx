@@ -64,7 +64,7 @@ export default async function SourceIndexPage({ params }: PageProps) {
         Find recent days for {sourceName}. You can also view{' '}
         <Link
           href={`/answers/${source}/today`}
-          className="verba-link text-sm text-verba-blue"
+          className="verba-link text-verba-blue"
         >
           Today
         </Link>
@@ -80,12 +80,12 @@ export default async function SourceIndexPage({ params }: PageProps) {
           <p>No dates found for this source yet.</p>
         </div>
       ) : (
-        <ul className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {dates.map((d) => (
             <li key={d}>
               <Link
                 href={`/answers/${source}/${d}`}
-                className="block rounded-md border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+                className="btn-marigold-hover btn-press block rounded-lg border bg-white px-3 py-2 text-center text-sm"
               >
                 {formatPuzzleDateShort(d)}
               </Link>
