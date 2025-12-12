@@ -1,42 +1,45 @@
 // components/RevealAnswer.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type RevealAnswerProps = {
   answer: string;
-  size?: 'sm' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
+  /** When this changes, the component will reset to this visibility state */
+  startRevealed?: boolean;
+  version?: number;
 };
 
-export function RevealAnswer({ answer, size = 'sm' }: RevealAnswerProps) {
-  const [revealed, setRevealed] = useState(false);
+export function RevealAnswer({
+  answer,
+  size = 'md',
+  startRevealed = false,
+  version,
+}: RevealAnswerProps) {
+  const [revealed, setRevealed] = useState(startRevealed);
 
-  const trimmed = (answer ?? '').trim();
-  if (!trimmed) {
-    return <span className="text-slate-400">—</span>;
-  }
+  // Whenever the parent toggles "reveal all / hide all" and bumps `version`,
+  // sync our local state to `startRevealed`.
+  useEffect(() => {
+    setRevealed(startRevealed);
+  }, [startRevealed, version]);
 
-  // Slightly different sizing for search cards vs daily page
-  const answerSizeClass = size === 'lg' ? 'text-2xl' : 'text-lg';
+  const length = (answer ?? '').replace(/[^A-Za-z]/g, '').length;
+  const placeholderDots = '•'.repeat(Math.max(length || 3, 3));
 
-  const buttonPadding =
-    size === 'lg' ? 'px-3 py-1.5 text-xs' : 'px-2 py-1 text-[11px]';
+  let textSize = 'text-base';
+  if (size === 'sm') textSize = 'text-sm';
+  if (size === 'lg') textSize = 'text-xl';
 
   return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => setRevealed((prev) => !prev)}
-        className={`btn-marigold-hover btn-press rounded-md border font-medium text-slate-800 ${buttonPadding}`}
-      >
-        {revealed ? 'Hide answer' : 'Show answer'}
-      </button>
-
-      {revealed && (
-        <span className={`font-semibold tracking-wide ${answerSizeClass}`}>
-          {trimmed}
-        </span>
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={() => setRevealed((prev) => !prev)}
+      className={`btn-marigold-hover btn-press inline-flex items-center justify-center rounded-md border px-3 py-1 font-mono uppercase tracking-[0.07em] ${textSize}`}
+      aria-label={revealed ? 'Hide answer' : 'Show answer'}
+    >
+      {revealed ? answer || '—' : placeholderDots}
+    </button>
   );
 }

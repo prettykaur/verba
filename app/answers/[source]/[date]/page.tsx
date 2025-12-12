@@ -2,8 +2,9 @@
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
-import { RevealAnswer } from '@/components/RevealAnswer';
+// import { RevealAnswer } from '@/components/RevealAnswer';
 import { HashScroll } from '@/components/HashScroll';
+import { DailyAnswersList } from '@/components/DailyAnswersList';
 
 export const dynamic = 'force-dynamic'; // remove `as const`
 export const revalidate = 0;
@@ -243,42 +244,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
           </div>
         </div>
       ) : (
-        <ul className="mt-8 divide-y rounded-xl border bg-white">
-          {rows.map((r) => {
-            const positionLabel =
-              r.number && r.direction
-                ? `${r.number} ${r.direction === 'across' ? 'Across' : 'Down'}`
-                : '—';
-
-            // anchor ID used for deep-linking from search results
-            const anchorId =
-              r.number && r.direction
-                ? `${r.number}-${r.direction.toLowerCase()}`
-                : `clue-${r.occurrence_id}`;
-
-            return (
-              <li
-                id={anchorId}
-                key={r.occurrence_id}
-                className="flex scroll-mt-24 items-start justify-between gap-4 p-4"
-              >
-                <div>
-                  <div className="text-slate-800">{r.clue_text}</div>
-                  <div className="text-xs text-slate-500">
-                    {positionLabel} ·{' '}
-                    {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
-                  </div>
-                </div>
-                <div className="text-lg font-semibold tracking-wide">
-                  <RevealAnswer
-                    answer={r.answer_pretty ?? r.answer ?? '—'}
-                    size="lg"
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <DailyAnswersList rows={rows} />
       )}
     </main>
   );
