@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
+import { HashScroll } from '@/components/HashScroll';
 
 export const dynamic = 'force-dynamic'; // remove `as const`
 export const revalidate = 0;
@@ -179,6 +180,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      <HashScroll />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumbs) }}
@@ -189,7 +191,6 @@ export default async function DailyAnswersPage({ params }: PageParams) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
         />
       )}
-
       {/* Article JSON-LD only when there is data */}
       {rows.length > 0 && (
         <script
@@ -216,7 +217,6 @@ export default async function DailyAnswersPage({ params }: PageParams) {
           }}
         />
       )}
-
       <h1 className="text-2xl font-bold">
         {sourceName} — Answers for {displayDate}
       </h1>
@@ -224,7 +224,6 @@ export default async function DailyAnswersPage({ params }: PageParams) {
         {HERO_INTROS[heroKey] ??
           `All clues & solutions for ${sourceName} on ${displayDate}. Use the site search for more days and sources.`}
       </p>
-
       {rows.length === 0 ? (
         <div className="mt-8 rounded-xl border bg-white p-6">
           <p className="text-slate-700">
@@ -251,32 +250,30 @@ export default async function DailyAnswersPage({ params }: PageParams) {
                 ? `${r.number} ${r.direction === 'across' ? 'Across' : 'Down'}`
                 : '—';
 
-            // derive a clean letter count from the pretty answer
-            const rawAnswer = (r.answer_pretty ?? r.answer ?? '').trim();
-            const clean = rawAnswer.replace(/[^A-Za-z]/g, '');
-            const letterCount = clean.length;
-            const lettersLabel =
-              letterCount > 0
-                ? `${letterCount} letter${letterCount === 1 ? '' : 's'}`
-                : null;
+            // anchor ID used for deep-linking from search results
+            const anchorId =
+              r.number && r.direction
+                ? `${r.number}-${r.direction.toLowerCase()}`
+                : `clue-${r.occurrence_id}`;
 
             return (
               <li
+                id={anchorId}
                 key={r.occurrence_id}
-                className="flex items-start justify-between gap-4 p-4"
+                className="flex scroll-mt-24 items-start justify-between gap-4 p-4"
               >
                 <div>
                   <div className="text-slate-800">{r.clue_text}</div>
                   <div className="text-xs text-slate-500">
-                    {positionLabel}
-                    {lettersLabel && ` · ${lettersLabel}`}
-                    {' · '}
+                    {positionLabel} ·{' '}
                     {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
                   </div>
                 </div>
-
-                <div className="shrink-0">
-                  <RevealAnswer answer={rawAnswer} />
+                <div className="text-lg font-semibold tracking-wide">
+                  <RevealAnswer
+                    answer={r.answer_pretty ?? r.answer ?? '—'}
+                    size="lg"
+                  />
                 </div>
               </li>
             );

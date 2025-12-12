@@ -46,7 +46,16 @@ export function ResultItem({
       .replace(/[^a-z0-9]+/g, '-') // collapse non-alphanumerics
       .replace(/^-+|-+$/g, ''); // trim hyphens
 
+  // anchor must match the IDs on the daily answers page
+  const clueAnchor =
+    number && direction ? `${number}-${direction.toLowerCase()}` : undefined;
+
   const hasDeepLink = slug && date;
+  const href = hasDeepLink
+    ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(
+        date!,
+      )}${clueAnchor ? `#${clueAnchor}` : ''}`
+    : undefined;
 
   return (
     <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
@@ -77,10 +86,10 @@ export function ResultItem({
           </div>
         </div>
 
-        {/* Right: link to dedicated answer page */}
-        {hasDeepLink && (
+        {/* Right: link to dedicated answer page at the exact clue */}
+        {href && (
           <Link
-            href={`/answers/${slug}/${date}`}
+            href={href}
             className="verba-link whitespace-nowrap text-sm text-verba-blue"
           >
             View answer →
