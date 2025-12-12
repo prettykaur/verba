@@ -57,6 +57,14 @@ export function ResultItem({
       )}${clueAnchor ? `#${clueAnchor}` : ''}`
     : undefined;
 
+  // links for source index + daily page
+  const sourceHref = slug ? `/answers/${encodeURIComponent(slug)}` : undefined;
+
+  const dateHref =
+    slug && date
+      ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(date)}`
+      : undefined;
+
   return (
     <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -75,14 +83,33 @@ export function ResultItem({
               <span aria-hidden>·</span>
             )}
 
-            {source && <span className="shrink-0">{source}</span>}
+            {source &&
+              (sourceHref ? (
+                <Link
+                  href={sourceHref}
+                  className="verba-link shrink-0 text-verba-blue"
+                >
+                  {source}
+                </Link>
+              ) : (
+                <span className="shrink-0">{source}</span>
+              ))}
+
             {source && date && <span aria-hidden>·</span>}
 
-            {date && (
-              <time className="shrink-0" dateTime={date}>
-                {formatPuzzleDateLong(date)}
-              </time>
-            )}
+            {date &&
+              (dateHref ? (
+                <Link
+                  href={dateHref}
+                  className="verba-link shrink-0 text-verba-blue"
+                >
+                  <time dateTime={date}>{formatPuzzleDateLong(date)}</time>
+                </Link>
+              ) : (
+                <time className="shrink-0" dateTime={date}>
+                  {formatPuzzleDateLong(date)}
+                </time>
+              ))}
           </div>
         </div>
 
