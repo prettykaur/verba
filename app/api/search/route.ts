@@ -8,6 +8,7 @@ type DbRow = {
   answer_pretty: string | null;
   puzzle_date: string | null;
   source_name: string | null;
+  source_slug: string | null;
   answer_len: number | null;
   number: number | null;
   direction: 'across' | 'down' | null;
@@ -18,6 +19,7 @@ type ApiResult = {
   clue: string;
   answer: string;
   source: string;
+  sourceSlug: string | null;
   date: string | null;
   number: number | null;
   direction: 'across' | 'down' | null;
@@ -110,6 +112,7 @@ export async function GET(req: Request) {
       answer_pretty,
       puzzle_date,
       source_name,
+      source_slug,
       answer_len,
       number,
       direction
@@ -184,6 +187,7 @@ export async function GET(req: Request) {
         clue: r.clue_text,
         answer: r.answer_pretty ?? '',
         source: r.source_name ?? '',
+        sourceSlug: r.source_slug,
         date: r.puzzle_date,
         number: r.number,
         direction: r.direction,

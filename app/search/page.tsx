@@ -9,6 +9,7 @@ type Row = {
   clue: string;
   answer: string;
   source: string;
+  sourceSlug?: string | null;
   date?: string | null;
   number?: number | null;
   direction?: 'across' | 'down' | null;
@@ -72,6 +73,7 @@ export default async function SearchPage({
                 clue={r.clue}
                 answer={r.answer}
                 source={r.source}
+                sourceSlug={r.sourceSlug ?? undefined}
                 date={r.date ?? undefined}
                 number={r.number ?? undefined}
                 direction={r.direction ?? undefined}

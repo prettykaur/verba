@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { RevealAnswer } from '@/components/RevealAnswer';
 
 export const dynamic = 'force-dynamic'; // remove `as const`
 export const revalidate = 0;
@@ -250,6 +251,15 @@ export default async function DailyAnswersPage({ params }: PageParams) {
                 ? `${r.number} ${r.direction === 'across' ? 'Across' : 'Down'}`
                 : '—';
 
+            // derive a clean letter count from the pretty answer
+            const rawAnswer = (r.answer_pretty ?? r.answer ?? '').trim();
+            const clean = rawAnswer.replace(/[^A-Za-z]/g, '');
+            const letterCount = clean.length;
+            const lettersLabel =
+              letterCount > 0
+                ? `${letterCount} letter${letterCount === 1 ? '' : 's'}`
+                : null;
+
             return (
               <li
                 key={r.occurrence_id}
@@ -258,12 +268,15 @@ export default async function DailyAnswersPage({ params }: PageParams) {
                 <div>
                   <div className="text-slate-800">{r.clue_text}</div>
                   <div className="text-xs text-slate-500">
-                    {positionLabel} ·{' '}
+                    {positionLabel}
+                    {lettersLabel && ` · ${lettersLabel}`}
+                    {' · '}
                     {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
                   </div>
                 </div>
-                <div className="text-lg font-semibold tracking-wide">
-                  {r.answer_pretty ?? r.answer ?? '—'}
+
+                <div className="shrink-0">
+                  <RevealAnswer answer={rawAnswer} />
                 </div>
               </li>
             );

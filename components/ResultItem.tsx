@@ -1,4 +1,5 @@
 // components/ResultItem.tsx
+import Link from 'next/link';
 import { Highlight } from './Highlight';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 
@@ -6,6 +7,7 @@ export function ResultItem({
   clue,
   answer,
   source,
+  sourceSlug,
   date,
   number,
   direction,
@@ -13,8 +15,9 @@ export function ResultItem({
   query,
 }: {
   clue: string;
-  answer: string;
-  source: string;
+  answer: string; // used only for length hint, not rendered
+  source: string; // human-readable label e.g. "NYT Mini"
+  sourceSlug?: string; // URL slug e.g. "nyt-mini"
   date?: string;
   number?: number | null;
   direction?: 'across' | 'down' | null;
@@ -26,20 +29,42 @@ export function ResultItem({
       ? `${number} ${direction === 'across' ? 'Across' : 'Down'}`
       : null;
 
+  // derive a clean letter count (A–Z only)
+  const clean = (answer ?? '').replace(/[^A-Za-z]/g, '');
+  const letterCount = clean.length;
+  const lettersLabel =
+    letterCount > 0
+      ? `${letterCount} letter${letterCount === 1 ? '' : 's'}`
+      : null;
+
+  // best-effort slug fallback if not explicitly passed
+  const slug =
+    sourceSlug ??
+    source
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-') // collapse non-alphanumerics
+      .replace(/^-+|-+$/g, ''); // trim hyphens
+
+  const hasDeepLink = slug && date;
+
   return (
-    <div className="border-brand-slate-200 card-hover-marigold card-lift rounded-2xl border bg-white p-4 shadow-sm">
+    <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         {/* Left: clue + meta */}
         <div className="min-w-0">
-          {/* Bigger, editorial headline feel. Uses your .result-clue font */}
           <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
             <Highlight text={clue} query={query ?? ''} />
           </div>
 
           {/* Meta row */}
-          <div className="text-brand-slate-600 mt-1 flex items-center gap-1 text-sm">
+          <div className="text-brand-slate-600 mt-1 flex flex-wrap items-center gap-1 text-sm">
             {positionLabel && <span className="shrink-0">{positionLabel}</span>}
-            {positionLabel && source && <span aria-hidden>·</span>}
+            {positionLabel && lettersLabel && <span aria-hidden>·</span>}
+            {lettersLabel && <span className="shrink-0">{lettersLabel}</span>}
+            {(positionLabel || lettersLabel) && source && (
+              <span aria-hidden>·</span>
+            )}
 
             {source && <span className="shrink-0">{source}</span>}
             {source && date && <span aria-hidden>·</span>}
@@ -52,13 +77,15 @@ export function ResultItem({
           </div>
         </div>
 
-        {/* Right: answer */}
-        <div
-          className="text-brand-ink shrink-0 select-text rounded-md px-2 py-1 text-right font-mono text-2xl uppercase leading-none tracking-[0.07em]"
-          title={answer}
-        >
-          {answer}
-        </div>
+        {/* Right: link to dedicated answer page */}
+        {hasDeepLink && (
+          <Link
+            href={`/answers/${slug}/${date}`}
+            className="verba-link whitespace-nowrap text-sm text-verba-blue"
+          >
+            View answer →
+          </Link>
+        )}
       </div>
 
       {typeof confidence === 'number' && (
