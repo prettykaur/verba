@@ -16,6 +16,7 @@ function isAbortError(e: unknown): boolean {
 }
 
 type Row = {
+  occurrenceId: number;
   id: number | string;
   clue: string;
   answer: string;
@@ -188,6 +189,7 @@ export default function SearchClient({
             view.rows.map((r) => (
               <ResultItem
                 key={r.id}
+                occurrenceId={r.occurrenceId}
                 clue={r.clue}
                 answer={r.answer}
                 source={r.source}

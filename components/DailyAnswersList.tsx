@@ -4,6 +4,7 @@
 import { useState } from 'react';
 // import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
+import Link from 'next/link';
 
 type Row = {
   occurrence_id: number;
@@ -85,7 +86,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
               <li
                 id={anchorId}
                 key={r.occurrence_id}
-                className="flex scroll-mt-24 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="card-hover-marigold card-lift flex scroll-mt-24 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-start gap-3">
                   {typeof r.number === 'number' && (
@@ -94,14 +95,17 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                     </div>
                   )}
 
-                  <div>
-                    <div className="text-[0.98rem] font-medium leading-snug text-slate-900">
+                  <Link
+                    href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
+                    className="block no-underline"
+                  >
+                    <div className="verba-link text-[0.98rem] font-medium leading-snug text-slate-900">
                       {r.clue_text}
                     </div>
                     <div className="mt-0.5 text-xs text-slate-500">
                       {metaBits.join(' · ')}
                     </div>
-                  </div>
+                  </Link>
                 </div>
 
                 <div className="sm:self-end">

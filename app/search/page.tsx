@@ -5,6 +5,7 @@ import { ResultItem } from '@/components/ResultItem';
 import { SearchHint } from '@/components/SearchHint';
 
 type Row = {
+  occurrenceId: number;
   id: number | string;
   clue: string;
   answer: string;
@@ -70,6 +71,7 @@ export default async function SearchPage({
             results.map((r: Row) => (
               <ResultItem
                 key={r.id}
+                occurrenceId={r.occurrenceId}
                 clue={r.clue}
                 answer={r.answer}
                 source={r.source}

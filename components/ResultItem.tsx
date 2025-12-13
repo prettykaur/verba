@@ -4,6 +4,7 @@ import { Highlight } from './Highlight';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 
 export function ResultItem({
+  occurrenceId,
   clue,
   answer,
   source,
@@ -14,6 +15,7 @@ export function ResultItem({
   confidence,
   query,
 }: {
+  occurrenceId: number;
   clue: string;
   answer: string; // used only for length hint, not rendered
   source: string; // human-readable label e.g. "NYT Mini"
@@ -50,29 +52,28 @@ export function ResultItem({
   const clueAnchor =
     number && direction ? `${number}-${direction.toLowerCase()}` : undefined;
 
-  const hasDeepLink = slug && date;
-  const href = hasDeepLink
-    ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(
-        date!,
-      )}${clueAnchor ? `#${clueAnchor}` : ''}`
-    : undefined;
-
   // links for source index + daily page
   const sourceHref = slug ? `/answers/${encodeURIComponent(slug)}` : undefined;
 
   const dateHref =
     slug && date
-      ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(date)}`
+      ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(date)}${
+          clueAnchor ? `#${clueAnchor}` : ''
+        }`
       : undefined;
+
+  const clueHref = `/clue/${encodeURIComponent(String(occurrenceId))}`;
 
   return (
     <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         {/* Left: clue + meta */}
         <div className="min-w-0">
-          <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
-            <Highlight text={clue} query={query ?? ''} />
-          </div>
+          <Link href={clueHref} className="verba-link block no-underline">
+            <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
+              <Highlight text={clue} query={query ?? ''} />
+            </div>
+          </Link>
 
           {/* Meta row */}
           <div className="text-brand-slate-600 mt-1 flex flex-wrap items-center gap-1 text-sm">
@@ -113,15 +114,13 @@ export function ResultItem({
           </div>
         </div>
 
-        {/* Right: link to dedicated answer page at the exact clue */}
-        {href && (
-          <Link
-            href={href}
-            className="verba-link whitespace-nowrap text-sm text-verba-blue"
-          >
-            View answer →
-          </Link>
-        )}
+        {/* Right: go to individual clue page */}
+        <Link
+          href={clueHref}
+          className="verba-link whitespace-nowrap text-sm text-verba-blue"
+        >
+          View answer →
+        </Link>
       </div>
 
       {typeof confidence === 'number' && (

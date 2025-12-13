@@ -16,6 +16,7 @@ type DbRow = {
 
 type ApiResult = {
   id: number;
+  occurrenceId: number;
   clue: string;
   answer: string;
   source: string;
@@ -184,6 +185,7 @@ export async function GET(req: Request) {
 
       return {
         id: r.occurrence_id,
+        occurrenceId: r.occurrence_id,
         clue: r.clue_text,
         answer: r.answer_pretty ?? '',
         source: r.source_name ?? '',
