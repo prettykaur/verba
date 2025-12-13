@@ -24,7 +24,6 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
   const handleToggleAll = () => {
     setRevealAll((prev) => {
       const next = !prev;
-      // bump version so all RevealAnswer instances resync
       setVersion((v) => v + 1);
       return next;
     });
@@ -32,9 +31,68 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
 
   if (rows.length === 0) return null;
 
+  // Group and sort by direction
+  const acrossRows = rows
+    .filter((r) => r.direction === 'across')
+    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+
+  const downRows = rows
+    .filter((r) => r.direction === 'down')
+    .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
+
+  const renderGroup = (title: string, group: Row[]) => {
+    if (group.length === 0) return null;
+
+    return (
+      <section className="mt-6">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+          {title}
+        </h2>
+        <ul className="divide-y rounded-xl border bg-white">
+          {group.map((r) => {
+            const positionLabel =
+              r.number && r.direction
+                ? `${r.number} ${r.direction === 'across' ? 'Across' : 'Down'}`
+                : '—';
+
+            const anchorId =
+              r.number && r.direction
+                ? `${r.number}-${r.direction.toLowerCase()}`
+                : `clue-${r.occurrence_id}`;
+
+            const displayAnswer = r.answer_pretty ?? r.answer ?? '—';
+
+            return (
+              <li
+                id={anchorId}
+                key={r.occurrence_id}
+                className="flex scroll-mt-24 items-start justify-between gap-4 p-4"
+              >
+                <div>
+                  <div className="text-slate-800">{r.clue_text}</div>
+                  <div className="text-xs text-slate-500">
+                    {positionLabel} ·{' '}
+                    {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
+                  </div>
+                </div>
+
+                <RevealAnswer
+                  answer={displayAnswer}
+                  size="md"
+                  startRevealed={revealAll}
+                  version={version}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  };
+
   return (
     <div className="mt-6">
-      {/* Small global toggle above the list */}
+      {/* Global toggle above everything */}
       <div className="mb-3 flex justify-end">
         <button
           type="button"
@@ -45,45 +103,8 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
         </button>
       </div>
 
-      <ul className="mt-2 divide-y rounded-xl border bg-white">
-        {rows.map((r) => {
-          const positionLabel =
-            r.number && r.direction
-              ? `${r.number} ${r.direction === 'across' ? 'Across' : 'Down'}`
-              : '—';
-
-          // anchor ID used for deep-linking from search results
-          const anchorId =
-            r.number && r.direction
-              ? `${r.number}-${r.direction.toLowerCase()}`
-              : `clue-${r.occurrence_id}`;
-
-          const displayAnswer = r.answer_pretty ?? r.answer ?? '—';
-
-          return (
-            <li
-              id={anchorId}
-              key={r.occurrence_id}
-              className="flex items-start justify-between gap-4 p-4"
-            >
-              <div>
-                <div className="text-slate-800">{r.clue_text}</div>
-                <div className="text-xs text-slate-500">
-                  {positionLabel} ·{' '}
-                  {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
-                </div>
-              </div>
-
-              <RevealAnswer
-                answer={displayAnswer}
-                size="md"
-                startRevealed={revealAll}
-                version={version}
-              />
-            </li>
-          );
-        })}
-      </ul>
+      {renderGroup('Across', acrossRows)}
+      {renderGroup('Down', downRows)}
     </div>
   );
 }
