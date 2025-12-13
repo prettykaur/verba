@@ -4,6 +4,11 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
+import Link from 'next/link';
+import { LetterTilesReveal } from '@/components/LetterTilesReveal';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 type Row = {
   occurrence_id: number;
@@ -18,6 +23,26 @@ type Row = {
 };
 
 type PageParams = { params: Promise<{ id: string }> };
+
+/* ----------------------------
+   Letter tiles helper
+----------------------------- */
+function LetterTiles({ count }: { count: number }) {
+  if (!count || count <= 0) return null;
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-sm font-semibold text-slate-500 shadow-sm"
+        >
+          ?
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export async function generateMetadata({
   params,
@@ -67,17 +92,6 @@ export async function generateMetadata({
   return {
     title: baseTitle,
     description: descriptionParts.join(' '),
-    openGraph: {
-      title: baseTitle,
-      description: descriptionParts.join(' '),
-      type: 'article',
-      siteName: 'Verba',
-    },
-    twitter: {
-      card: 'summary',
-      title: baseTitle,
-      description: descriptionParts.join(' '),
-    },
   };
 }
 
@@ -133,36 +147,87 @@ export default async function CluePage({ params }: PageParams) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      {/* Breadcrumbs */}
+      <nav className="mb-4 text-xs text-slate-500">
+        <Link href="/" className="verba-link text-verba-blue">
+          Home
+        </Link>
+        <span className="mx-2">/</span>
+        <Link href="/search" className="verba-link text-verba-blue">
+          Search
+        </Link>
+        {row.source_slug && (
+          <>
+            <span className="mx-2">/</span>
+            <Link
+              href={`/answers/${row.source_slug}`}
+              className="verba-link text-verba-blue"
+            >
+              {sourceName}
+            </Link>
+          </>
+        )}
+      </nav>
+
       <h1 className="text-2xl font-bold">{row.clue_text}</h1>
 
-      <p className="mt-2 text-sm text-slate-600">
+      {/* Meta row */}
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
         {positionLabel && <span>{positionLabel}</span>}
-        {positionLabel && (sourceName || displayDate) && (
-          <span aria-hidden> · </span>
+        {positionLabel && <span aria-hidden>·</span>}
+
+        {letterCount > 0 && (
+          <>
+            <span>
+              {letterCount} letter{letterCount === 1 ? '' : 's'}
+            </span>
+            <span aria-hidden>·</span>
+          </>
         )}
-        {sourceName && <span>{sourceName}</span>}
-        {sourceName && displayDate && <span aria-hidden> · </span>}
-        {displayDate && <span>{displayDate}</span>}
-      </p>
+
+        {row.source_slug && (
+          <>
+            <Link
+              href={`/answers/${row.source_slug}`}
+              className="verba-link text-verba-blue"
+            >
+              {sourceName}
+            </Link>
+            <span aria-hidden>·</span>
+          </>
+        )}
+
+        {date && (
+          <Link
+            href={`/answers/${row.source_slug}/${date}${
+              row.number && row.direction
+                ? `#${row.number}-${row.direction}`
+                : ''
+            }`}
+            className="verba-link text-verba-blue"
+          >
+            {displayDate}
+          </Link>
+        )}
+      </div>
 
       {/* Answer block */}
       <section className="mt-6 rounded-xl border bg-white p-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900">
-              Crossword answer
-            </h2>
-            {letterCount > 0 && (
-              <p className="mt-1 text-sm text-slate-500">
-                {letterCount} letter{letterCount === 1 ? '' : 's'}
-              </p>
-            )}
-          </div>
+        <h2 className="text-base font-semibold text-slate-900">
+          Solve this clue
+        </h2>
 
+        {/* Letter tiles */}
+        <LetterTilesReveal answer={displayAnswer} />
+
+        <div className="mt-2 text-xs text-slate-500">
+          Want the full answer? Use the Reveal button below.
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-4">
           <RevealAnswer answer={displayAnswer} size="lg" />
         </div>
 
-        {/* Placeholder for future hints */}
         <div className="mt-4 border-t pt-4 text-xs text-slate-500">
           Hints & letter-by-letter reveal coming soon.
         </div>
@@ -170,9 +235,9 @@ export default async function CluePage({ params }: PageParams) {
 
       {puzzleUrl && (
         <div className="mt-6 text-sm">
-          <a href={puzzleUrl} className="verba-link text-verba-blue">
+          <Link href={puzzleUrl} className="verba-link text-verba-blue">
             View all clues & answers for this puzzle →
-          </a>
+          </Link>
         </div>
       )}
     </main>
