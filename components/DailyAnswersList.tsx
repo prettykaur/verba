@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { formatPuzzleDateLong } from '@/lib/formatDate';
+// import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
 
 type Row = {
@@ -31,7 +31,6 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
 
   if (rows.length === 0) return null;
 
-  // Group and sort by direction
   const acrossRows = rows
     .filter((r) => r.direction === 'across')
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
@@ -40,20 +39,27 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
     .filter((r) => r.direction === 'down')
     .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
 
-  const renderGroup = (title: string, group: Row[]) => {
+  const renderGroup = (title: string, group: Row[], withTopBorder = false) => {
     if (group.length === 0) return null;
 
     return (
-      <section className="mt-6">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+      <section
+        className={
+          withTopBorder ? 'mt-8 border-t border-slate-200 pt-6' : 'mt-6'
+        }
+      >
+        <h2 className="mb-3 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-slate-500">
           {title}
         </h2>
+
         <ul className="divide-y rounded-xl border bg-white">
           {group.map((r) => {
-            const positionLabel =
-              r.number && r.direction
-                ? `${r.number} ${r.direction === 'across' ? 'Across' : 'Down'}`
-                : '—';
+            const directionLabel =
+              r.direction === 'across'
+                ? 'Across'
+                : r.direction === 'down'
+                  ? 'Down'
+                  : '';
 
             const anchorId =
               r.number && r.direction
@@ -62,26 +68,50 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
 
             const displayAnswer = r.answer_pretty ?? r.answer ?? '—';
 
+            // letter-count hint (A–Z only)
+            const letters = (displayAnswer ?? '').replace(/[^A-Za-z]/g, '');
+            const lettersLabel =
+              letters.length > 0
+                ? `${letters.length} letter${letters.length === 1 ? '' : 's'}`
+                : '';
+
+            const metaBits: string[] = [];
+            if (directionLabel) metaBits.push(directionLabel);
+            if (lettersLabel) metaBits.push(lettersLabel);
+            // if (r.puzzle_date)
+            //   metaBits.push(formatPuzzleDateLong(r.puzzle_date));
+
             return (
               <li
                 id={anchorId}
                 key={r.occurrence_id}
-                className="flex scroll-mt-24 items-start justify-between gap-4 p-4"
+                className="flex scroll-mt-24 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div>
-                  <div className="text-slate-800">{r.clue_text}</div>
-                  <div className="text-xs text-slate-500">
-                    {positionLabel} ·{' '}
-                    {r.puzzle_date ? formatPuzzleDateLong(r.puzzle_date) : '—'}
+                <div className="flex items-start gap-3">
+                  {typeof r.number === 'number' && (
+                    <div className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-[11px] font-semibold text-slate-600">
+                      {r.number}
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="text-[0.98rem] font-medium leading-snug text-slate-900">
+                      {r.clue_text}
+                    </div>
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      {metaBits.join(' · ')}
+                    </div>
                   </div>
                 </div>
 
-                <RevealAnswer
-                  answer={displayAnswer}
-                  size="md"
-                  startRevealed={revealAll}
-                  version={version}
-                />
+                <div className="sm:self-end">
+                  <RevealAnswer
+                    answer={displayAnswer}
+                    size="sm"
+                    startRevealed={revealAll}
+                    version={version}
+                  />
+                </div>
               </li>
             );
           })}
@@ -103,8 +133,8 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
         </button>
       </div>
 
-      {renderGroup('Across', acrossRows)}
-      {renderGroup('Down', downRows)}
+      {renderGroup('Across', acrossRows, false)}
+      {renderGroup('Down', downRows, true)}
     </div>
   );
 }
