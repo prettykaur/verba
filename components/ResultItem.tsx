@@ -68,7 +68,7 @@ export function ResultItem({
     <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         {/* Left: clue + meta */}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <Link href={clueHref} className="verba-link block no-underline">
             <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
               <Highlight text={clue} query={query ?? ''} />
@@ -117,7 +117,7 @@ export function ResultItem({
         {/* Right: go to individual clue page */}
         <Link
           href={clueHref}
-          className="verba-link whitespace-nowrap text-sm text-verba-blue"
+          className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue"
         >
           View answer →
         </Link>

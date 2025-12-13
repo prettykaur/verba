@@ -27,7 +27,7 @@ a {
 ------------------------------ */
 .verba-link {
   position: relative;
-  display: inline-block; /* make pseudo-element behave nicely */
+  /* display: inline-block; make pseudo-element behave nicely */
   text-decoration: none;
 }
 
