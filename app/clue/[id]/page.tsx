@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
 import { LetterTilesReveal } from '@/components/LetterTilesReveal';
+import { RelatedCluesList } from '@/components/RelatedCluesList.client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -31,122 +32,6 @@ function positionLabel(number: number | null, direction: Row['direction']) {
 
 function cleanAnswer(s: string) {
   return (s ?? '').replace(/[^A-Za-z]/g, '').toUpperCase();
-}
-
-/** Spoiler-safe small answer chip for Related Clues (no JS handlers needed) */
-function AnswerChip({
-  answer,
-  label = 'Answer',
-}: {
-  answer: string;
-  label?: string;
-}) {
-  const clean = (answer ?? '').trim();
-  if (!clean || clean === '—') return null;
-
-  const dotsCount = Math.max(cleanAnswer(clean).length || 3, 1);
-  const dots = '•'.repeat(dotsCount);
-
-  return (
-    <details className="group inline-block">
-      <summary className="list-none">
-        <span className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-[#fffdf5]">
-          {label}
-          <span className="text-slate-400 group-open:hidden">{dots}</span>
-          <span className="hidden text-slate-500 group-open:inline">Hide</span>
-        </span>
-      </summary>
-
-      <span className="ml-2 inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-900 shadow-sm">
-        {clean}
-      </span>
-    </details>
-  );
-}
-
-function RelatedClues({
-  rows,
-  currentSourceSlug,
-  currentDate,
-}: {
-  rows: Row[];
-  currentSourceSlug?: string | null;
-  currentDate?: string | null;
-}) {
-  return (
-    <section className="mt-8 rounded-xl border bg-white p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900">
-            Related clues
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Other puzzles where this answer appeared
-          </p>
-        </div>
-      </div>
-
-      {rows.length === 0 ? (
-        <div className="mt-4 text-sm text-slate-600">
-          No related clues found yet. More connections coming soon.
-        </div>
-      ) : (
-        <ul className="mt-4 space-y-3">
-          {rows.map((r) => {
-            const sourceName = r.source_name ?? r.source_slug ?? 'Crossword';
-            const displayDate = r.puzzle_date
-              ? formatPuzzleDateLong(r.puzzle_date)
-              : null;
-            const pos = positionLabel(r.number, r.direction);
-
-            const answerForChip = (r.answer_pretty ?? r.answer ?? '—').trim();
-
-            const isSamePuzzle =
-              !!currentSourceSlug &&
-              !!currentDate &&
-              r.source_slug === currentSourceSlug &&
-              r.puzzle_date === currentDate;
-
-            return (
-              <li key={r.occurrence_id}>
-                {/* NOT wrapping the whole row in <Link> so the chip can be clicked safely */}
-                <div className="card-hover-marigold flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
-                  {/* Clickable text area */}
-                  <Link
-                    href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
-                    className="min-w-0 flex-1"
-                  >
-                    <div className="text-[0.98rem] font-medium leading-snug text-slate-900">
-                      {r.clue_text}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      {[sourceName, displayDate, pos]
-                        .filter(Boolean)
-                        .join(' · ')}
-                      {isSamePuzzle && (
-                        <>
-                          {' '}
-                          <span aria-hidden>·</span>{' '}
-                          <span className="font-semibold text-slate-400">
-                            same puzzle
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </Link>
-
-                  {/* Spoiler-safe chip (no event handlers needed) */}
-                  <div className="shrink-0">
-                    <AnswerChip answer={answerForChip} label="Answer" />
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
 }
 
 export async function generateMetadata({
@@ -251,16 +136,11 @@ export default async function CluePage({ params }: PageParams) {
 
   const puzzleUrl =
     row.source_slug && date
-      ? `/answers/${encodeURIComponent(row.source_slug)}/${encodeURIComponent(
-          date,
-        )}`
+      ? `/answers/${encodeURIComponent(row.source_slug)}/${encodeURIComponent(date)}`
       : null;
 
   // --- Related clues (same answer only) ---
-  // Strategy:
-  // 1) Query broadly using cleaned answer (so it catches "Oreo" / "OREO" variants)
-  // 2) Post-filter to exact cleaned equality
-  // 3) Exclude SAME PUZZLE: (source_slug AND puzzle_date) match current
+  // Pull more than 6 so client can lazy-expand.
   let related: Row[] = [];
 
   if (cleanedCurrent && displayAnswer !== '—') {
@@ -284,7 +164,7 @@ export default async function CluePage({ params }: PageParams) {
       .neq('occurrence_id', row.occurrence_id)
       .ilike('answer_pretty', `%${pat}%`)
       .order('puzzle_date', { ascending: false })
-      .limit(40);
+      .limit(60);
 
     const q2 = supabase
       .from('v_search_results_pretty')
@@ -292,7 +172,7 @@ export default async function CluePage({ params }: PageParams) {
       .neq('occurrence_id', row.occurrence_id)
       .ilike('answer', `%${pat}%`)
       .order('puzzle_date', { ascending: false })
-      .limit(40);
+      .limit(60);
 
     const [{ data: d1, error: e1 }, { data: d2, error: e2 }] =
       await Promise.all([q1, q2]);
@@ -316,14 +196,73 @@ export default async function CluePage({ params }: PageParams) {
       return !samePuzzle;
     });
 
-    // Dedupe + cap
     related = Array.from(
       new Map(filtered.map((r) => [r.occurrence_id, r])).values(),
-    ).slice(0, 6);
+    );
   }
+
+  // --- Frequency counter: unique puzzles containing this answer (excluding current puzzle) ---
+  let seenInCount: number | null = null;
+
+  if (cleanedCurrent && displayAnswer !== '—') {
+    const { data: freq1 } = await supabase
+      .from('v_search_results_pretty')
+      .select('source_slug,puzzle_date,answer,answer_pretty')
+      .ilike('answer_pretty', `%${cleanedCurrent}%`)
+      .limit(500);
+
+    const { data: freq2 } = await supabase
+      .from('v_search_results_pretty')
+      .select('source_slug,puzzle_date,answer,answer_pretty')
+      .ilike('answer', `%${cleanedCurrent}%`)
+      .limit(500);
+
+    const merged = [...((freq1 ?? []) as any[]), ...((freq2 ?? []) as any[])];
+
+    const unique = new Set<string>();
+    for (const r of merged) {
+      const candidate = cleanAnswer((r.answer_pretty ?? r.answer ?? '').trim());
+      if (candidate !== cleanedCurrent) continue;
+      if (!r.source_slug || !r.puzzle_date) continue;
+      unique.add(`${r.source_slug}__${r.puzzle_date}`);
+    }
+
+    if (row.source_slug && row.puzzle_date) {
+      unique.delete(`${row.source_slug}__${row.puzzle_date}`);
+    }
+
+    seenInCount = unique.size;
+  }
+
+  // --- Schema.org ItemList JSON-LD for related clues ---
+  const site =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+    'https://example.com';
+
+  const relatedJsonLd =
+    related.length === 0
+      ? null
+      : {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: 'Related crossword clues',
+          itemListElement: related.slice(0, 30).map((r, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: `${site}/clue/${r.occurrence_id}`,
+            name: r.clue_text,
+          })),
+        };
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      {relatedJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(relatedJsonLd) }}
+        />
+      )}
+
       {/* Breadcrumbs */}
       <nav className="mb-4 text-xs text-slate-500">
         <Link href="/" className="verba-link text-verba-blue">
@@ -401,7 +340,6 @@ export default async function CluePage({ params }: PageParams) {
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-4">
-          {/* ✅ Fixes 2-letter answers showing 3 dots */}
           <RevealAnswer
             answer={displayAnswer}
             size="lg"
@@ -414,11 +352,14 @@ export default async function CluePage({ params }: PageParams) {
         </div>
       </section>
 
-      {/* ✅ Related clues (same answer) + spoiler-safe answer chip */}
-      <RelatedClues
+      {/* Related clues (lazy expand + frequency counter + spoiler chip) */}
+      <RelatedCluesList
         rows={related}
         currentSourceSlug={row.source_slug}
         currentDate={row.puzzle_date}
+        seenInCount={seenInCount}
+        initialCount={6}
+        step={6}
       />
 
       {puzzleUrl && (
