@@ -9,6 +9,9 @@ type RevealAnswerProps = {
   /** When this changes, the component will reset to this visibility state */
   startRevealed?: boolean;
   version?: number;
+
+  /** Optional: force the placeholder dot length (e.g. 2-letter answers => "••") */
+  maskLength?: number;
 };
 
 export function RevealAnswer({
@@ -16,17 +19,24 @@ export function RevealAnswer({
   size = 'md',
   startRevealed = false,
   version,
+  maskLength,
 }: RevealAnswerProps) {
   const [revealed, setRevealed] = useState(startRevealed);
 
-  // Whenever the parent toggles "reveal all / hide all" and bumps `version`,
-  // sync our local state to `startRevealed`.
   useEffect(() => {
     setRevealed(startRevealed);
   }, [startRevealed, version]);
 
   const length = (answer ?? '').replace(/[^A-Za-z]/g, '').length;
-  const placeholderDots = '•'.repeat(Math.max(length || 3, 3));
+
+  // If maskLength is provided, use it EXACTLY (fixes 2-letter => 2 dots).
+  // Otherwise keep existing behavior (min 3 dots).
+  const dotsCount =
+    typeof maskLength === 'number' && maskLength > 0
+      ? maskLength
+      : Math.max(length || 3, 3);
+
+  const placeholderDots = '•'.repeat(dotsCount);
 
   let textSize = 'text-base';
   if (size === 'sm') textSize = 'text-sm';
