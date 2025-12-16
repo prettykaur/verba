@@ -6,35 +6,50 @@ import { useEffect, useMemo, useState } from 'react';
 export function LetterTilesReveal({
   answer,
   revealAll = false,
+  revealNextSignal = 0, // bump this number to reveal the next unrevealed letter
+  className = '',
 }: {
   answer: string;
   revealAll?: boolean;
+  revealNextSignal?: number;
+  className?: string;
 }) {
-  // Keep only A–Z letters
   const letters = useMemo(
-    () => answer.replace(/[^A-Za-z]/g, '').split(''),
+    () => (answer ?? '').replace(/[^A-Za-z]/g, '').split(''),
     [answer],
   );
 
-  // Track exactly which tile indices are revealed
   const [revealed, setRevealed] = useState<Set<number>>(() => new Set());
 
-  // If parent says revealAll, reveal everything
-  useEffect(() => {
-    if (revealAll) {
-      setRevealed(new Set(letters.map((_, i) => i)));
-    }
-  }, [revealAll, letters]);
-
-  // If the answer changes (new clue), reset revealed state
+  // Reset revealed when answer changes
   useEffect(() => {
     setRevealed(new Set());
   }, [answer]);
 
+  // Reveal all (if requested)
+  useEffect(() => {
+    if (!revealAll) return;
+    setRevealed(new Set(letters.map((_, i) => i)));
+  }, [revealAll, letters]);
+
+  // Do NOT reveal on mount. Only reveal when signal increments > 0.
+  useEffect(() => {
+    if (!letters.length) return;
+    if (!revealNextSignal || revealNextSignal <= 0) return;
+
+    setRevealed((prev) => {
+      const nextIdx = letters.findIndex((_, i) => !prev.has(i));
+      if (nextIdx === -1) return prev;
+      const next = new Set(prev);
+      next.add(nextIdx);
+      return next;
+    });
+  }, [revealNextSignal, letters]);
+
   if (letters.length === 0) return null;
 
   return (
-    <div className="mt-4">
+    <div className={className}>
       <div className="flex flex-wrap gap-2">
         {letters.map((letter, i) => {
           const isRevealed = revealed.has(i);
@@ -45,17 +60,18 @@ export function LetterTilesReveal({
               type="button"
               onClick={() =>
                 setRevealed((prev) => {
-                  if (prev.has(i)) return prev; // don't toggle back
+                  if (prev.has(i)) return prev;
                   const next = new Set(prev);
                   next.add(i);
                   return next;
                 })
               }
-              className={`flex h-10 w-10 select-none items-center justify-center rounded-md border text-sm font-semibold shadow-sm transition ${
+              className={[
+                'btn-press flex h-10 w-10 select-none items-center justify-center rounded-md border text-sm font-semibold shadow-sm transition',
                 isRevealed
                   ? 'border-slate-400 bg-slate-100 text-slate-900'
-                  : 'border-slate-200 bg-white text-slate-400 hover:bg-slate-50'
-              }`}
+                  : 'btn-marigold-hover border-slate-200 bg-white text-slate-400',
+              ].join(' ')}
               aria-label={
                 isRevealed
                   ? `Letter ${i + 1} revealed`
@@ -69,7 +85,7 @@ export function LetterTilesReveal({
       </div>
 
       <p className="mt-2 text-xs text-slate-500">
-        Tap a tile to reveal that letter
+        Tap a tile to reveal a letter
       </p>
     </div>
   );

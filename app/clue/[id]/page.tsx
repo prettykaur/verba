@@ -4,9 +4,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
-import { RevealAnswer } from '@/components/RevealAnswer';
-import { LetterTilesReveal } from '@/components/LetterTilesReveal';
 import { RelatedCluesList } from '@/components/RelatedCluesList.client';
+import { ClueHintActions } from '@/components/ClueHintActions.client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -140,7 +139,6 @@ export default async function CluePage({ params }: PageParams) {
       : null;
 
   // --- Related clues (same answer only) ---
-  // Pull more than 6 so client can lazy-expand.
   let related: Row[] = [];
 
   if (cleanedCurrent && displayAnswer !== '—') {
@@ -185,11 +183,8 @@ export default async function CluePage({ params }: PageParams) {
     const filtered = merged.filter((r) => {
       const candidate = cleanAnswer((r.answer_pretty ?? r.answer ?? '').trim());
       if (!candidate) return false;
-
-      // Must be SAME answer (cleaned)
       if (candidate !== cleanedCurrent) return false;
 
-      // Exclude same puzzle: same source_slug AND same puzzle_date
       const samePuzzle =
         r.source_slug === row.source_slug && r.puzzle_date === row.puzzle_date;
 
@@ -201,7 +196,7 @@ export default async function CluePage({ params }: PageParams) {
     );
   }
 
-  // --- Frequency counter: unique puzzles containing this answer (excluding current puzzle) ---
+  // --- Frequency counter ---
   let seenInCount: number | null = null;
 
   if (cleanedCurrent && displayAnswer !== '—') {
@@ -233,6 +228,11 @@ export default async function CluePage({ params }: PageParams) {
 
     seenInCount = unique.size;
   }
+
+  const otherCluesForSameAnswer = related
+    .map((r) => r.clue_text)
+    .filter(Boolean)
+    .slice(0, 50);
 
   // --- Schema.org ItemList JSON-LD for related clues ---
   const site =
@@ -333,26 +333,22 @@ export default async function CluePage({ params }: PageParams) {
           Solve this clue
         </h2>
 
-        <LetterTilesReveal answer={displayAnswer} />
-
-        <div className="mt-2 text-xs text-slate-500">
-          Want the full answer? Use the Reveal button below.
-        </div>
-
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <RevealAnswer
-            answer={displayAnswer}
-            size="lg"
-            maskLength={letterCount}
-          />
-        </div>
+        <ClueHintActions
+          clueText={row.clue_text}
+          answer={displayAnswer}
+          answerFrequency={
+            typeof seenInCount === 'number' ? seenInCount + 1 : undefined
+          }
+          otherCluesForSameAnswer={otherCluesForSameAnswer}
+          definition={null}
+        />
 
         <div className="mt-4 border-t pt-4 text-xs text-slate-500">
           Hints & letter-by-letter reveal coming soon.
         </div>
       </section>
 
-      {/* Related clues (lazy expand + frequency counter + spoiler chip) */}
+      {/* Related clues */}
       <RelatedCluesList
         rows={related}
         currentSourceSlug={row.source_slug}
