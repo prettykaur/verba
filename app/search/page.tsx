@@ -44,7 +44,6 @@ export default async function SearchPage({
   const sp = await searchParams;
   const q = (sp?.q ?? '').trim();
   const { results = [], count = 0 } = await getResults(q);
-  const hasPattern = /[?*]/.test(q);
 
   return (
     <>

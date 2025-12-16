@@ -22,6 +22,14 @@ type Row = {
   puzzle_date: string | null;
 };
 
+// ✅ Fix: type the “frequency query” rows (no any[])
+type FreqRow = {
+  source_slug: string | null;
+  puzzle_date: string | null;
+  answer: string | null;
+  answer_pretty: string | null;
+};
+
 type PageParams = { params: Promise<{ id: string }> };
 
 function positionLabel(number: number | null, direction: Row['direction']) {
@@ -212,7 +220,11 @@ export default async function CluePage({ params }: PageParams) {
       .ilike('answer', `%${cleanedCurrent}%`)
       .limit(500);
 
-    const merged = [...((freq1 ?? []) as any[]), ...((freq2 ?? []) as any[])];
+    // ✅ Fix: no any[]
+    const merged: FreqRow[] = [
+      ...((freq1 ?? []) as FreqRow[]),
+      ...((freq2 ?? []) as FreqRow[]),
+    ];
 
     const unique = new Set<string>();
     for (const r of merged) {
