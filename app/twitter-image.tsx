@@ -1,0 +1,50 @@
+// app/twitter-image.tsx
+import { ImageResponse } from 'next/og';
+
+export const runtime = 'edge';
+export const size = { width: 1200, height: 630 };
+export const contentType = 'image/png';
+
+export default async function TwitterImage() {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#F9FAFB',
+          padding: 80,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+          <img
+            src={'https://tryverba.com/branding/verba-icon.svg'}
+            width={140}
+            height={140}
+            alt=""
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              style={{
+                fontSize: 78,
+                fontWeight: 800,
+                letterSpacing: -2,
+                color: '#1F2937',
+                lineHeight: 1,
+              }}
+            >
+              verba
+            </div>
+            <div style={{ fontSize: 34, color: '#374151', lineHeight: 1.2 }}>
+              Search clues. Browse daily puzzles. Reveal answers safely.
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+    size,
+  );
+}

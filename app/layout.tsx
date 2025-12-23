@@ -6,10 +6,51 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Verba — Crossword Answers & Clues',
+  metadataBase: new URL('https://tryverba.com'),
+  title: {
+    default: 'Verba — Crossword Answers & Clues',
+    template: '%s — Verba',
+  },
   description:
     'Get quick, clean crossword answers and clues. Search by clue or pattern, and browse daily crossword solutions from major sources.',
-  alternates: { canonical: 'https://tryverba.com' },
+  alternates: { canonical: '/' },
+
+  // Favicons / app icons (these should be in /public root OR handled by app icons route)
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' },
+      // Optional if you add PNG favicons:
+      // { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+
+  openGraph: {
+    type: 'website',
+    url: '/',
+    siteName: 'Verba',
+    title: 'Verba — Crossword Answers & Clues',
+    description:
+      'Get quick, clean crossword answers and clues. Search by clue or pattern, and browse daily crossword solutions from major sources.',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'Verba — Crossword Answers & Clues',
+      },
+    ],
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Verba — Crossword Answers & Clues',
+    description:
+      'Get quick, clean crossword answers and clues. Search by clue or pattern, and browse daily crossword solutions from major sources.',
+    images: ['/twitter-image'],
+  },
 };
 
 export default function RootLayout({
@@ -19,6 +60,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#F9FAFB" />
+      </head>
       <body className="bg-verba-cream text-verba-slate antialiased">
         <Header />
         <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
