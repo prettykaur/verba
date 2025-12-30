@@ -4,8 +4,11 @@ import './globals.css';
 import { inter, plexMono } from './fonts';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
+  manifest: '/manifest.webmanifest',
+  themeColor: '#F9FAFB',
   metadataBase: new URL('https://tryverba.com'),
   title: {
     default: 'Verba — Crossword Answers & Clues',
@@ -60,14 +63,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
-      <head>
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="theme-color" content="#F9FAFB" />
-      </head>
       <body className="bg-verba-cream text-verba-slate antialiased">
         <Header />
         <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
         <Footer />
+
+        {/* Plausible (standard snippet) */}
+        <Script
+          defer
+          data-domain="tryverba.com"
+          src="https://plausible.io/js/script.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
