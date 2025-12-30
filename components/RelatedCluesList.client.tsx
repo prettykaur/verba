@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { track } from '@/lib/analytics';
 
 type Row = {
   occurrence_id: number;
@@ -131,6 +132,14 @@ export function RelatedCluesList({
                     <Link
                       href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
                       className="min-w-0 flex-1"
+                      onClick={() => {
+                        track('click_related_clue', {
+                          from: 'clue_page',
+                          occurrence_id: r.occurrence_id,
+                          source: r.source_slug ?? '',
+                          date: r.puzzle_date ?? '',
+                        });
+                      }}
                     >
                       <div className="text-[0.98rem] font-medium leading-snug text-slate-900">
                         {r.clue_text}

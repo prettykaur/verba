@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateShort } from '@/lib/formatDate';
+import { TrackedLink } from '@/components/TrackedLink';
 
 export const revalidate = 3600; // refresh hourly
 
@@ -83,12 +84,14 @@ export default async function SourceIndexPage({ params }: PageProps) {
         <ul className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {dates.map((d) => (
             <li key={d}>
-              <Link
+              <TrackedLink
                 href={`/answers/${source}/${d}`}
                 className="btn-marigold-hover btn-press block rounded-lg border bg-white px-3 py-2 text-center text-sm"
+                event="click_source_date"
+                props={{ source, date: d, from: 'source_index' }}
               >
                 {formatPuzzleDateShort(d)}
-              </Link>
+              </TrackedLink>
             </li>
           ))}
         </ul>

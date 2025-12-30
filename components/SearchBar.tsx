@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
+import { track } from '@/lib/analytics';
 
 export function SearchBar({ initialQuery = '' }: { initialQuery?: string }) {
   const [q, setQ] = useState(initialQuery);
@@ -14,6 +15,13 @@ export function SearchBar({ initialQuery = '' }: { initialQuery?: string }) {
     e.preventDefault();
     const qs = q.trim();
     if (!qs) return;
+
+    track('search_submit', {
+      q: qs,
+      len: qs.length,
+      has_wildcard: /[?*]/.test(qs),
+    });
+
     router.push(`/search?q=${encodeURIComponent(qs)}`);
   }
 

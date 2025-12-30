@@ -1,12 +1,12 @@
-// components/LetterTilesReveal.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { track } from '@/lib/analytics';
 
 export function LetterTilesReveal({
   answer,
   revealAll = false,
-  revealNextSignal = 0, // bump this number to reveal the next unrevealed letter
+  revealNextSignal = 0,
   className = '',
 }: {
   answer: string;
@@ -21,18 +21,15 @@ export function LetterTilesReveal({
 
   const [revealed, setRevealed] = useState<Set<number>>(() => new Set());
 
-  // Reset revealed when answer changes
   useEffect(() => {
     setRevealed(new Set());
   }, [answer]);
 
-  // Reveal all (if requested)
   useEffect(() => {
     if (!revealAll) return;
     setRevealed(new Set(letters.map((_, i) => i)));
   }, [revealAll, letters]);
 
-  // Do NOT reveal on mount. Only reveal when signal increments > 0.
   useEffect(() => {
     if (!letters.length) return;
     if (!revealNextSignal || revealNextSignal <= 0) return;
@@ -40,6 +37,13 @@ export function LetterTilesReveal({
     setRevealed((prev) => {
       const nextIdx = letters.findIndex((_, i) => !prev.has(i));
       if (nextIdx === -1) return prev;
+
+      track('reveal_letter_tile', {
+        method: 'reveal_next',
+        idx: nextIdx + 1,
+        total: letters.length,
+      });
+
       const next = new Set(prev);
       next.add(nextIdx);
       return next;
@@ -61,6 +65,13 @@ export function LetterTilesReveal({
               onClick={() =>
                 setRevealed((prev) => {
                   if (prev.has(i)) return prev;
+
+                  track('reveal_letter_tile', {
+                    method: 'tile_click',
+                    idx: i + 1,
+                    total: letters.length,
+                  });
+
                   const next = new Set(prev);
                   next.add(i);
                   return next;

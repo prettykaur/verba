@@ -5,6 +5,7 @@ import { useState } from 'react';
 // import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
 import Link from 'next/link';
+import { track } from '@/lib/analytics';
 
 type Row = {
   occurrence_id: number;
@@ -98,6 +99,15 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                   <Link
                     href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
                     className="block no-underline"
+                    onClick={() => {
+                      track('click_clue_from_daily', {
+                        occurrence_id: r.occurrence_id,
+                        source: r.source_slug,
+                        date: r.puzzle_date,
+                        direction: r.direction ?? '',
+                        number: r.number ?? 0,
+                      });
+                    }}
                   >
                     <div className="verba-link text-[0.98rem] font-medium leading-snug text-slate-900">
                       {r.clue_text}
@@ -114,6 +124,14 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                     size="sm"
                     startRevealed={revealAll}
                     version={version}
+                    eventProps={{
+                      context: 'daily_answers',
+                      source: r.source_slug,
+                      date: r.puzzle_date,
+                      occurrence_id: r.occurrence_id,
+                      direction: r.direction ?? '',
+                      number: r.number ?? 0,
+                    }}
                   />
                 </div>
               </li>
