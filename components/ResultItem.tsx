@@ -1,4 +1,7 @@
 // components/ResultItem.tsx
+
+'use client';
+
 import Link from 'next/link';
 import { Highlight } from './Highlight';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
