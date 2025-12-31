@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { Highlight } from './Highlight';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { track } from '@/lib/analytics';
 
 export function ResultItem({
   occurrenceId,
@@ -17,9 +18,9 @@ export function ResultItem({
 }: {
   occurrenceId: number;
   clue: string;
-  answer: string; // used only for length hint, not rendered
-  source: string; // human-readable label e.g. "NYT Mini"
-  sourceSlug?: string; // URL slug e.g. "nyt-mini"
+  answer: string;
+  source: string;
+  sourceSlug?: string;
   date?: string;
   number?: number | null;
   direction?: 'across' | 'down' | null;
@@ -31,7 +32,6 @@ export function ResultItem({
       ? `${number} ${direction === 'across' ? 'Across' : 'Down'}`
       : null;
 
-  // derive a clean letter count (A–Z only)
   const clean = (answer ?? '').replace(/[^A-Za-z]/g, '');
   const letterCount = clean.length;
   const lettersLabel =
@@ -39,20 +39,17 @@ export function ResultItem({
       ? `${letterCount} letter${letterCount === 1 ? '' : 's'}`
       : null;
 
-  // best-effort slug fallback if not explicitly passed
   const slug =
     sourceSlug ??
     source
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9]+/g, '-') // collapse non-alphanumerics
-      .replace(/^-+|-+$/g, ''); // trim hyphens
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
 
-  // anchor must match the IDs on the daily answers page
   const clueAnchor =
     number && direction ? `${number}-${direction.toLowerCase()}` : undefined;
 
-  // links for source index + daily page
   const sourceHref = slug ? `/answers/${encodeURIComponent(slug)}` : undefined;
 
   const dateHref =
@@ -64,18 +61,30 @@ export function ResultItem({
 
   const clueHref = `/clue/${encodeURIComponent(String(occurrenceId))}`;
 
+  // Shared tracking function
+  const handleResultClick = () => {
+    track('result_click', {
+      source,
+      occurrenceId,
+      query: query ?? '',
+    });
+  };
+
   return (
     <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         {/* Left: clue + meta */}
         <div className="min-w-0 flex-1 overflow-hidden">
-          <Link href={clueHref} className="verba-link block no-underline">
+          <Link
+            href={clueHref}
+            className="verba-link block no-underline"
+            onClick={handleResultClick}
+          >
             <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
               <Highlight text={clue} query={query ?? ''} />
             </div>
           </Link>
 
-          {/* Meta row */}
           <div className="text-brand-slate-600 mt-1 flex flex-wrap items-center gap-1 text-sm">
             {positionLabel && <span className="shrink-0">{positionLabel}</span>}
             {positionLabel && lettersLabel && <span aria-hidden>·</span>}
@@ -114,10 +123,11 @@ export function ResultItem({
           </div>
         </div>
 
-        {/* Right: go to individual clue page */}
+        {/* Right: go to individual clue page (tracked) */}
         <Link
           href={clueHref}
           className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue"
+          onClick={handleResultClick}
         >
           View answer →
         </Link>
