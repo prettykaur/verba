@@ -16,10 +16,10 @@ export default function ContactPage() {
           <p className="text-sm text-slate-700">
             You can email me directly at{' '}
             <a
-              href="mailto:hello@verba.app"
+              href="mailto:hello@tryverba.com"
               className="verba-link font-semibold decoration-amber-400"
             >
-              hello@verba.app
+              hello@tryverba.com
             </a>
             .
           </p>
