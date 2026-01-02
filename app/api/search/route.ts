@@ -1,6 +1,11 @@
 // app/api/search/route.ts
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import crypto from 'crypto';
+
+/* =========================
+   Types
+========================= */
 
 type DbRow = {
   occurrence_id: number;
@@ -27,7 +32,9 @@ type ApiResult = {
   confidence: number;
 };
 
-// --- simple helpers ---
+/* =========================
+   Helpers
+========================= */
 
 function normalize(str: string | null | undefined): string {
   return (str ?? '').toLowerCase();
@@ -52,7 +59,7 @@ function scoreTextQuery(q: string, row: DbRow): number {
   if (clue.startsWith(qNorm)) score += 35;
   else if (clue.includes(qNorm)) score += 20;
 
-  // 3) answer contains query (useful when people type answers)
+  // 3) answer contains query
   if (qNorm.length >= 3 && answer.includes(qNorm)) score += 25;
 
   // 4) per-word boosts (e.g. "Peru capital")
@@ -82,18 +89,81 @@ function scorePatternQuery(q: string, row: DbRow): number {
     row.answer_len ??
     (row.answer_pretty ?? '').replace(/[^A-Za-z]/g, '').length;
 
-  if (!baseLen || !patternLetters) return 0.3; // neutral-ish
+  if (!baseLen || !patternLetters) return 0.3;
 
   const diff = Math.abs(baseLen - patternLetters);
   const score = 1 / (1 + diff); // 0.5 when off by 1, 1 when exact
   return score; // already 0–1
 }
 
+/* =========================
+   Search Logging
+========================= */
+
+async function logSearchEvent({
+  q,
+  isPattern,
+  sourceSlug,
+  resultsCount,
+  tookMs,
+  ua,
+  referrer,
+  ip,
+}: {
+  q: string;
+  isPattern: boolean;
+  sourceSlug: string | null;
+  resultsCount: number;
+  tookMs: number;
+  ua: string | null;
+  referrer: string | null;
+  ip: string | null;
+}) {
+  const ipHash = ip
+    ? crypto.createHash('sha256').update(ip).digest('hex')
+    : null;
+
+  await supabase.from('search_event').insert({
+    q,
+    pattern: isPattern ? q : null,
+    source_slug: sourceSlug,
+    results: resultsCount,
+    took_ms: tookMs,
+    ua,
+    referrer,
+    ip_hash: ipHash,
+  });
+}
+
+/* =========================
+   API Route
+========================= */
+
 export async function GET(req: Request) {
+  const start = Date.now();
+
   const { searchParams } = new URL(req.url);
   const rawQ = (searchParams.get('q') || '').trim();
 
+  const ua = req.headers.get('user-agent');
+  const referrer = req.headers.get('referer') ?? null;
+
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  const ip =
+    forwardedFor?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || null;
+
   if (!rawQ) {
+    await logSearchEvent({
+      q: rawQ,
+      isPattern: false,
+      sourceSlug: null,
+      resultsCount: 0,
+      tookMs: Date.now() - start,
+      ua,
+      referrer,
+      ip,
+    });
+
     return NextResponse.json(
       { results: [] as ApiResult[], count: 0 },
       { headers: { 'cache-control': 'no-store' } },
@@ -127,19 +197,26 @@ export async function GET(req: Request) {
     // pattern match on the pretty answer text (keep existing behaviour)
     query = query.ilike('answer_pretty', likePattern);
   } else {
-    // ------- NEW: safe, smarter text search -------
-
     // normalise whitespace
     const collapsed = rawQ.replace(/\s+/g, ' ').trim();
-
     // strip punctuation per word so commas etc. don't break PostgREST .or()
     const tokens = collapsed
       .split(/\s+/)
-      .map((word) => word.replace(/[^A-Za-z0-9]/g, '')) // keep only letters/digits
-      .filter((t) => t.length > 0);
+      .map((w) => w.replace(/[^A-Za-z0-9]/g, ''))
+      .filter(Boolean);
 
     if (tokens.length === 0) {
-      // if the user typed only punctuation, just return nothing gracefully
+      await logSearchEvent({
+        q: rawQ,
+        isPattern,
+        sourceSlug: null,
+        resultsCount: 0,
+        tookMs: Date.now() - start,
+        ua,
+        referrer,
+        ip,
+      });
+
       return NextResponse.json(
         { results: [] as ApiResult[], count: 0 },
         { headers: { 'cache-control': 'no-store' } },
@@ -147,7 +224,6 @@ export async function GET(req: Request) {
     }
 
     const orParts: string[] = [];
-
     for (const token of tokens) {
       // basic: match token anywhere in clue or pretty answer
       orParts.push(`clue_text.ilike.%${token}%`);
@@ -155,7 +231,7 @@ export async function GET(req: Request) {
 
       // bonus: handle dotted abbreviations like T.G.I.F. for query "TGIF"
       if (/^[A-Za-z]+$/.test(token) && token.length >= 2 && token.length <= 6) {
-        const dotted = token.split('').join('.'); // TGIF -> T.G.I.F
+        const dotted = token.split('').join('.');
         orParts.push(`clue_text.ilike.%${dotted}%`);
         orParts.push(`answer_pretty.ilike.%${dotted}%`);
       }
@@ -170,13 +246,13 @@ export async function GET(req: Request) {
     console.error('[/api/search] Supabase error:', error);
     return NextResponse.json(
       { results: [] as ApiResult[], count: 0 },
-      { status: 200, headers: { 'cache-control': 'no-store' } },
+      { headers: { 'cache-control': 'no-store' } },
     );
   }
 
   const rows = (data ?? []) as DbRow[];
 
-  // rank & map results (unchanged)
+  // rank & map results
   const ranked = rows
     .map((r) => {
       const confidence = isPattern
@@ -194,11 +270,22 @@ export async function GET(req: Request) {
         number: r.number,
         direction: r.direction,
         confidence,
-      } satisfies ApiResult;
+      };
     })
     .sort((a, b) => b.confidence - a.confidence);
 
   const top = ranked.slice(0, 25);
+
+  await logSearchEvent({
+    q: rawQ,
+    isPattern,
+    sourceSlug: top[0]?.sourceSlug ?? null,
+    resultsCount: top.length,
+    tookMs: Date.now() - start,
+    ua,
+    referrer,
+    ip,
+  });
 
   return NextResponse.json(
     { results: top, count: count ?? ranked.length },
