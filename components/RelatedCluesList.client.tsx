@@ -130,37 +130,62 @@ export function RelatedCluesList({
                 <li key={r.occurrence_id}>
                   {/* Not wrapping whole row in <Link> so the chip stays clickable */}
                   <div className="card-hover-marigold flex items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
-                    <Link
-                      href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
-                      className="min-w-0 flex-1"
-                      onClick={() => {
-                        track('click_related_clue', {
-                          from: 'clue_page',
-                          occurrence_id: r.occurrence_id,
-                          source: r.source_slug ?? '',
-                          date: r.puzzle_date ?? '',
-                        });
-                      }}
-                    >
-                      <div className="text-[0.98rem] font-medium leading-snug text-slate-900">
+                    {/* LEFT COLUMN */}
+                    <div className="min-w-0 flex-1">
+                      {/* Clue */}
+                      <Link
+                        href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
+                        className="block font-medium leading-snug text-slate-900 hover:underline"
+                        onClick={() => {
+                          track('click_related_clue', {
+                            from: 'clue_page',
+                            occurrence_id: r.occurrence_id,
+                            source: r.source_slug ?? '',
+                            date: r.puzzle_date ?? '',
+                          });
+                        }}
+                      >
                         {r.clue_text}
-                      </div>
+                      </Link>
+
+                      {/* Meta row */}
                       <div className="mt-1 text-xs text-slate-500">
-                        {[sourceName, displayDate, pos]
-                          .filter(Boolean)
-                          .join(' · ')}
+                        {r.source_slug && (
+                          <Link
+                            href={`/answers/${encodeURIComponent(r.source_slug)}`}
+                            className="verba-link text-verba-blue"
+                          >
+                            {sourceName}
+                          </Link>
+                        )}
+
+                        {displayDate && r.source_slug && (
+                          <>
+                            {' · '}
+                            <Link
+                              href={`/answers/${encodeURIComponent(
+                                r.source_slug,
+                              )}/${encodeURIComponent(r.puzzle_date!)}`}
+                              className="verba-link text-verba-blue"
+                            >
+                              {displayDate}
+                            </Link>
+                          </>
+                        )}
+
+                        {pos && <> · {pos}</>}
                         {isSamePuzzle && (
                           <>
-                            {' '}
-                            <span aria-hidden>·</span>{' '}
+                            {' · '}
                             <span className="font-semibold text-slate-400">
                               same puzzle
                             </span>
                           </>
                         )}
                       </div>
-                    </Link>
+                    </div>
 
+                    {/* RIGHT COLUMN */}
                     <div className="shrink-0">
                       <AnswerChip answer={answerForChip} label="Answer" />
                     </div>
