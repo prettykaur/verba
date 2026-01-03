@@ -1,11 +1,17 @@
 // components/Header.tsx
+
+'use client';
+
 import Link from 'next/link';
 import { Button } from './ui/Button';
 import Image from 'next/image';
+import { useState } from 'react';
 
 export function Header() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <header className="border-brand-slate-200 sticky top-0 z-30 border-b bg-white/80 backdrop-blur">
+    <header className="border-brand-slate-200 relative sticky top-0 z-30 border-b bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
         {/* Left: logo / brand */}
         <Link
@@ -75,8 +81,60 @@ export function Header() {
               Submit a clue
             </Button>
           </Link>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            aria-label="Open menu"
+            onClick={() => setOpen((v) => !v)}
+            className="rounded-md px-2 py-1 text-lg hover:bg-verba-cream/70 md:hidden"
+          >
+            ☰
+          </Button>
         </div>
       </div>
+
+      {open && (
+        <div className="absolute right-4 top-full z-50 mt-2 rounded-lg border border-slate-200 bg-white shadow-md md:hidden">
+          <nav className="flex flex-col text-sm">
+            <Link
+              href="/search"
+              className="px-4 py-2 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              Search
+            </Link>
+            <Link
+              href="/answers"
+              className="px-4 py-2 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              Answers
+            </Link>
+            <Link
+              href="/browse"
+              className="px-4 py-2 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              Browse
+            </Link>
+            <Link
+              href="/faq"
+              className="px-4 py-2 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              FAQ
+            </Link>
+            <Link
+              href="/answers/nyt-mini/today"
+              className="px-4 py-2 hover:bg-slate-50"
+              onClick={() => setOpen(false)}
+            >
+              Today
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
