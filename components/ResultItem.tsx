@@ -64,7 +64,11 @@ export function ResultItem({
 
   const clueHref = `/clue/${encodeURIComponent(String(occurrenceId))}`;
 
-  // Shared tracking function
+  const isSeed = slug === 'seed';
+
+  const metaLink =
+    'verba-link text-verba-blue hover:underline underline-offset-4 decoration-[1.5px]';
+
   const handleResultClick = () => {
     track('result_click', {
       source,
@@ -74,20 +78,20 @@ export function ResultItem({
   };
 
   return (
-    <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-4 shadow-sm">
+    <div className="card-hover-marigold card-lift border-brand-slate-200 rounded-2xl border bg-white p-3 shadow-sm sm:p-4">
       <div className="flex items-start justify-between gap-4">
-        {/* Left: clue + meta */}
         <div className="min-w-0 flex-1 overflow-hidden">
           <Link
             href={clueHref}
-            className="verba-link block no-underline"
+            className="block no-underline"
             onClick={handleResultClick}
           >
-            <div className="result-clue text-brand-slate-900 truncate text-[1.1875rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem] md:text-[1.375rem]">
+            <div className="result-clue text-brand-slate-900 line-clamp-2 text-[1.05rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem]">
               <Highlight text={clue} query={query ?? ''} />
             </div>
           </Link>
 
+          {/* meta row */}
           <div className="text-brand-slate-600 mt-1 flex flex-wrap items-center gap-1 text-sm">
             {positionLabel && <span className="shrink-0">{positionLabel}</span>}
             {positionLabel && lettersLabel && <span aria-hidden>·</span>}
@@ -98,38 +102,27 @@ export function ResultItem({
 
             {source &&
               (sourceHref ? (
-                <Link
-                  href={sourceHref}
-                  className="verba-link shrink-0 text-verba-blue"
-                >
+                <Link href={sourceHref} className={`${metaLink} shrink-0`}>
                   {source}
                 </Link>
               ) : (
                 <span className="shrink-0">{source}</span>
               ))}
 
-            {source && date && <span aria-hidden>·</span>}
+            {/* seed: no date link (we'll address seed UX separately) */}
+            {source && date && !isSeed && <span aria-hidden>·</span>}
 
-            {date &&
-              (dateHref ? (
-                <Link
-                  href={dateHref}
-                  className="verba-link shrink-0 text-verba-blue"
-                >
-                  <time dateTime={date}>{formatPuzzleDateLong(date)}</time>
-                </Link>
-              ) : (
-                <time className="shrink-0" dateTime={date}>
-                  {formatPuzzleDateLong(date)}
-                </time>
-              ))}
+            {date && dateHref && !isSeed ? (
+              <Link href={dateHref} className={`${metaLink} shrink-0`}>
+                <time dateTime={date}>{formatPuzzleDateLong(date)}</time>
+              </Link>
+            ) : null}
           </div>
         </div>
 
-        {/* Right: go to individual clue page (tracked) */}
         <Link
           href={clueHref}
-          className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue"
+          className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue underline-offset-4 hover:underline"
           onClick={handleResultClick}
         >
           View answer →

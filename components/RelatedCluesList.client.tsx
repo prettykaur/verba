@@ -118,6 +118,8 @@ export function RelatedCluesList({
                 : null;
               const pos = positionLabel(r.number, r.direction);
 
+              const isSeed = r.source_slug === 'seed';
+
               const answerForChip = (r.answer_pretty ?? r.answer ?? '—').trim();
 
               const isSamePuzzle =
@@ -159,7 +161,7 @@ export function RelatedCluesList({
                           </Link>
                         )}
 
-                        {displayDate && r.source_slug && (
+                        {displayDate && r.source_slug && !isSeed && (
                           <>
                             {' · '}
                             <Link
