@@ -42,16 +42,17 @@ function AnswerChip({
   const dots = '•'.repeat(dotsCount);
 
   return (
-    <details className="group inline-block">
-      <summary className="list-none">
-        <span className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-[#fffdf5]">
-          {label}
-          <span className="text-slate-400 group-open:hidden">{dots}</span>
-          <span className="hidden text-slate-500 group-open:inline">Hide</span>
+    <details className="group inline-flex flex-col items-end">
+      <summary className="cursor-pointer list-none">
+        <span className="btn-marigold-hover inline-flex h-8 min-w-[96px] items-center justify-center whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 shadow-sm transition">
+          <span className="group-open:hidden">
+            {label} <span className="ml-1 text-slate-400">{dots}</span>
+          </span>
+          <span className="hidden group-open:inline">Hide</span>
         </span>
       </summary>
 
-      <span className="ml-2 inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-900 shadow-sm">
+      <span className="mt-2 inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-900 shadow-sm">
         {clean}
       </span>
     </details>
