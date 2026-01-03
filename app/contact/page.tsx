@@ -16,7 +16,7 @@ export default function ContactPage() {
             You can email me directly at{' '}
             <a
               href="mailto:hello@tryverba.com"
-              className="verba-link font-semibold decoration-amber-400"
+              className="verba-link text-verba-blue"
             >
               hello@tryverba.com
             </a>
