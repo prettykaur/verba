@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Terms of Use</h1>
       <p className="text-slate-700">
         Verba is a small crossword helper built for convenience and education.
@@ -80,6 +80,6 @@ export default function TermsPage() {
           .
         </p>
       </section>
-    </main>
+    </div>
   );
 }

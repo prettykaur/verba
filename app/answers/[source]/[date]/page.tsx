@@ -180,7 +180,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <div className="space-y-6">
       <HashScroll />
       <script
         type="application/ld+json"
@@ -246,6 +246,6 @@ export default async function DailyAnswersPage({ params }: PageParams) {
       ) : (
         <DailyAnswersList rows={rows} />
       )}
-    </main>
+    </div>
   );
 }

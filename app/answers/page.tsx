@@ -57,7 +57,7 @@ export default async function AnswersHubPage() {
   const sources = Array.from(grouped.entries());
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Crossword Answers</h1>
       <p className="mt-2 text-slate-600">
         Browse daily crossword answers from top sources like the NYT Mini. Click
@@ -120,6 +120,6 @@ export default async function AnswersHubPage() {
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
 }

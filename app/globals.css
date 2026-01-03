@@ -5,10 +5,12 @@
 /* Brand defaults */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   @apply min-h-screen bg-verba-cream text-verba-slate antialiased;
+  overflow-x: hidden;
 }
 
 /* Optional resets */

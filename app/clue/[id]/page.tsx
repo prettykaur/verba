@@ -267,7 +267,7 @@ export default async function CluePage({ params }: PageParams) {
         };
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <div className="space-y-6">
       {relatedJsonLd && (
         <script
           type="application/ld+json"
@@ -377,6 +377,6 @@ export default async function CluePage({ params }: PageParams) {
           </Link>
         </div>
       )}
-    </main>
+    </div>
   );
 }

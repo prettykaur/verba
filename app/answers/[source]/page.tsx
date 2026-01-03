@@ -59,7 +59,7 @@ export default async function SourceIndexPage({ params }: PageProps) {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">{sourceName} — Recent Answers</h1>
       <p className="mt-2 text-slate-600">
         Find recent days for {sourceName}. You can also view{' '}
@@ -102,6 +102,6 @@ export default async function SourceIndexPage({ params }: PageProps) {
           ← Back to all sources
         </Link>
       </div>
-    </main>
+    </div>
   );
 }

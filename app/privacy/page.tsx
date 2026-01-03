@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 px-4 py-10">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Privacy Policy</h1>
       <p className="text-slate-700">
         This is a simple crossword helper site. We collect as little data as
@@ -91,6 +91,6 @@ export default function PrivacyPage() {
           .
         </p>
       </section>
-    </main>
+    </div>
   );
 }

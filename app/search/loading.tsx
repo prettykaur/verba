@@ -17,7 +17,7 @@ function RowSkeleton() {
 export default function Loading() {
   return (
     <>
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+      <div className="space-y-6">
         <div className="space-y-2 text-center">
           <div className="bg-brand-slate-100 mx-auto h-7 w-52 rounded" />
           <div className="bg-brand-slate-100 mx-auto h-5 w-72 rounded" />
@@ -27,7 +27,7 @@ export default function Loading() {
             <RowSkeleton key={i} />
           ))}
         </div>
-      </main>
+      </div>
     </>
   );
 }

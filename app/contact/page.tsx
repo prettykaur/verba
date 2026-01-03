@@ -3,7 +3,7 @@
 export default function ContactPage() {
   return (
     <>
-      <main className="mx-auto max-w-2xl px-4 py-10">
+      <div className="space-y-6">
         <h1 className="mb-4 text-2xl font-bold">Contact</h1>
         <p className="mb-6 text-sm text-slate-600">
           Got a question, bug report, or a feature request for Verba? Send me a
@@ -11,8 +11,7 @@ export default function ContactPage() {
         </p>
 
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          {/* For now this can just be a mailto link;
-              you can swap to a real form + API route later. */}
+          {/* For now this can just be a mailto link */}
           <p className="text-sm text-slate-700">
             You can email me directly at{' '}
             <a
@@ -24,7 +23,7 @@ export default function ContactPage() {
             .
           </p>
         </div>
-      </main>
+      </div>
     </>
   );
 }
