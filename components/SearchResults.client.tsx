@@ -1,7 +1,19 @@
+// components/SearchResults.client.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { ResultItem } from '@/components/ResultItem';
+import type { ComponentProps } from 'react';
+
+// ResultItem props (excluding query)
+type ResultItemProps = ComponentProps<typeof ResultItem>;
+type ResultItemData = Omit<ResultItemProps, 'query'>;
+
+// Explicitly add a stable key field from the API
+type SearchResult = ResultItemData & {
+  occurrence_id: number;
+};
 
 function RowSkeleton() {
   return (
@@ -22,10 +34,10 @@ export function SearchResults({
   initialResults,
 }: {
   q: string;
-  initialResults: any[];
+  initialResults: SearchResult[];
 }) {
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(initialResults);
+  const [results, setResults] = useState<SearchResult[]>(initialResults);
 
   useEffect(() => {
     if (!q) return;
@@ -37,7 +49,7 @@ export function SearchResults({
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) {
-          setResults(data.results ?? []);
+          setResults((data.results ?? []) as SearchResult[]);
           setLoading(false);
         }
       })
@@ -63,7 +75,7 @@ export function SearchResults({
   return (
     <>
       {results.map((r) => (
-        <ResultItem key={r.id} {...r} query={q} />
+        <ResultItem key={r.occurrence_id} {...r} query={q} />
       ))}
     </>
   );

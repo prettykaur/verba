@@ -77,34 +77,41 @@ export default async function SourceIndexPage({
      CLASSIC CROSSWORD CLUES MODE
      =============================== */
   if (isClassic) {
-    const letterParam = (await searchParams)?.letter?.toUpperCase() ?? 'A';
+    const resolvedSearchParams = await searchParams;
+    const letterParam = resolvedSearchParams?.letter?.toUpperCase() ?? 'A';
     const currentLetter = LETTERS.includes(letterParam) ? letterParam : 'A';
 
-    const currentPage = Math.max(1, Number((await searchParams)?.page ?? 1));
+    const currentPage = Math.max(1, Number(resolvedSearchParams?.page ?? 1));
     const from = (currentPage - 1) * CLASSIC_PAGE_SIZE;
     const to = from + CLASSIC_PAGE_SIZE - 1;
 
-    // Letter filtering
-    const letterFilter =
+    // -------------------------------
+    // Build queries WITHOUT helpers
+    // -------------------------------
+    const baseQuery = supabase
+      .from('v_search_results_pretty')
+      .select('occurrence_id, clue_text, source_name')
+      .eq('source_slug', source)
+      .order('clue_text', { ascending: true });
+
+    const countQuery = supabase
+      .from('v_search_results_pretty')
+      .select('*', { count: 'exact', head: true })
+      .eq('source_slug', source);
+
+    const filteredDataQuery =
       currentLetter === '#'
-        ? (q: any) => q.not('clue_text', 'ilike', '[A-Z]%')
-        : (q: any) => q.ilike('clue_text', `${currentLetter}%`);
+        ? baseQuery.not('clue_text', 'ilike', '[A-Z]%')
+        : baseQuery.ilike('clue_text', `${currentLetter}%`);
+
+    const filteredCountQuery =
+      currentLetter === '#'
+        ? countQuery.not('clue_text', 'ilike', '[A-Z]%')
+        : countQuery.ilike('clue_text', `${currentLetter}%`);
 
     const [{ data, error }, { count }] = await Promise.all([
-      letterFilter(
-        supabase
-          .from('v_search_results_pretty')
-          .select('occurrence_id, clue_text, source_name')
-          .eq('source_slug', source)
-          .order('clue_text', { ascending: true })
-          .range(from, to),
-      ),
-      letterFilter(
-        supabase
-          .from('v_search_results_pretty')
-          .select('*', { count: 'exact', head: true })
-          .eq('source_slug', source),
-      ),
+      filteredDataQuery.range(from, to),
+      filteredCountQuery,
     ]);
 
     if (error) console.error(error);
@@ -132,7 +139,7 @@ export default async function SourceIndexPage({
         </p>
 
         {/* GLOBAL A–Z NAV */}
-        <nav className="sticky top-16 z-10 bg-white px-4 py-2">
+        <nav className="sticky top-16 z-10 bg-white px-6 py-3">
           <ul className="flex flex-wrap justify-between gap-y-2 text-sm">
             {LETTERS.map((l) => (
               <li key={l}>
