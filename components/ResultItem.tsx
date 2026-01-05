@@ -22,7 +22,7 @@ export function ResultItem({
   occurrenceId: number;
   clue: string;
   answer: string;
-  source: string;
+  source?: string;
   sourceSlug?: string;
   date?: string;
   number?: number | null;
@@ -44,11 +44,13 @@ export function ResultItem({
 
   const slug =
     sourceSlug ??
-    source
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+    (source
+      ? source
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+      : undefined);
 
   const clueAnchor =
     number && direction ? `${number}-${direction.toLowerCase()}` : undefined;
@@ -66,12 +68,11 @@ export function ResultItem({
 
   const isSeed = slug === 'seed';
 
-  const metaLink =
-    'verba-link text-verba-blue hover:underline underline-offset-4 decoration-[1.5px]';
+  const metaLink = 'verba-link text-verba-blue underline-offset-4';
 
   const handleResultClick = () => {
     track('result_click', {
-      source,
+      source: source ?? 'unknown',
       occurrenceId,
       query: query ?? '',
     });
@@ -91,9 +92,9 @@ export function ResultItem({
 
           {/* meta row */}
           <div className="text-brand-slate-600 mt-1 flex flex-wrap items-center gap-1 text-sm">
-            {positionLabel && <span className="shrink-0">{positionLabel}</span>}
+            {positionLabel && <span>{positionLabel}</span>}
             {positionLabel && lettersLabel && <span aria-hidden>·</span>}
-            {lettersLabel && <span className="shrink-0">{lettersLabel}</span>}
+            {lettersLabel && <span>{lettersLabel}</span>}
             {(positionLabel || lettersLabel) && source && (
               <span aria-hidden>·</span>
             )}
@@ -104,23 +105,23 @@ export function ResultItem({
                   {source}
                 </Link>
               ) : (
-                <span className="shrink-0">{source}</span>
+                <span>{source}</span>
               ))}
 
-            {/* seed: no date link (we'll address seed UX separately) */}
             {source && date && !isSeed && <span aria-hidden>·</span>}
 
-            {date && dateHref && !isSeed ? (
+            {date && dateHref && !isSeed && (
               <Link href={dateHref} className={`${metaLink} shrink-0`}>
                 <time dateTime={date}>{formatPuzzleDateLong(date)}</time>
               </Link>
-            ) : null}
+            )}
           </div>
         </div>
 
         <Link
           href={clueHref}
           className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue"
+          onClick={handleResultClick}
         >
           View answer →
         </Link>

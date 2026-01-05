@@ -10,9 +10,9 @@ import type { ComponentProps } from 'react';
 type ResultItemProps = ComponentProps<typeof ResultItem>;
 type ResultItemData = Omit<ResultItemProps, 'query'>;
 
-// Explicitly add a stable key field from the API
+// Data shape coming from the API
 type SearchResult = ResultItemData & {
-  occurrence_id: number;
+  occurrenceId: number;
 };
 
 function RowSkeleton() {
@@ -40,7 +40,10 @@ export function SearchResults({
   const [results, setResults] = useState<SearchResult[]>(initialResults);
 
   useEffect(() => {
-    if (!q) return;
+    if (!q) {
+      setResults(initialResults);
+      return;
+    }
 
     let cancelled = false;
     setLoading(true);
@@ -48,10 +51,17 @@ export function SearchResults({
     fetch(`/api/search?q=${encodeURIComponent(q)}`)
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled) {
-          setResults((data.results ?? []) as SearchResult[]);
-          setLoading(false);
-        }
+        if (cancelled) return;
+
+        const normalized: SearchResult[] = (data.results ?? []).map(
+          (r: any) => ({
+            ...r,
+            occurrenceId: Number(r.occurrenceId),
+          }),
+        );
+
+        setResults(normalized);
+        setLoading(false);
       })
       .catch(() => {
         if (!cancelled) setLoading(false);
@@ -60,7 +70,7 @@ export function SearchResults({
     return () => {
       cancelled = true;
     };
-  }, [q]);
+  }, [q, initialResults]);
 
   if (loading) {
     return (
@@ -75,7 +85,7 @@ export function SearchResults({
   return (
     <>
       {results.map((r) => (
-        <ResultItem key={r.occurrence_id} {...r} query={q} />
+        <ResultItem key={`result-${r.occurrenceId}`} {...r} query={q} />
       ))}
     </>
   );
