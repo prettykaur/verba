@@ -57,6 +57,7 @@ export function RevealAnswer({
         setRevealed(next);
       }}
       className={`btn-marigold-hover btn-press inline-flex items-center justify-center rounded-md border px-3 py-1 font-mono uppercase tracking-[0.07em] ${textSize}`}
+      aria-pressed={revealed}
       aria-label={revealed ? 'Hide answer' : 'Show answer'}
     >
       {revealed ? answer || '—' : placeholderDots}

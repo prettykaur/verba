@@ -151,6 +151,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
           onClick={handleToggleAll}
           className="btn-marigold-hover inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium text-slate-800"
         >
+          aria-pressed={revealAll}
           {revealAll ? 'Hide all answers' : 'Reveal all answers'}
         </button>
       </div>

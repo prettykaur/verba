@@ -83,6 +83,7 @@ export function LetterTilesReveal({
                   ? 'border-slate-400 bg-slate-100 text-slate-900'
                   : 'btn-marigold-hover border-slate-200 bg-white text-slate-400',
               ].join(' ')}
+              aria-pressed={isRevealed}
               aria-label={
                 isRevealed
                   ? `Letter ${i + 1} revealed`
