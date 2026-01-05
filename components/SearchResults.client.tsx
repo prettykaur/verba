@@ -10,9 +10,17 @@ import type { ComponentProps } from 'react';
 type ResultItemProps = ComponentProps<typeof ResultItem>;
 type ResultItemData = Omit<ResultItemProps, 'query'>;
 
-// Data shape coming from the API
 type SearchResult = ResultItemData & {
   occurrenceId: number;
+};
+
+// API response shape
+type SearchApiResult = Partial<SearchResult> & {
+  occurrenceId?: number | string;
+};
+
+type SearchApiResponse = {
+  results?: SearchApiResult[];
 };
 
 function RowSkeleton() {
@@ -20,10 +28,10 @@ function RowSkeleton() {
     <div className="skeleton-card border-brand-slate-200 border p-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 space-y-3">
-          <div className="skeleton-line h-4 w-3/4"></div>
-          <div className="skeleton-line h-3 w-1/3"></div>
+          <div className="skeleton-line h-4 w-3/4" />
+          <div className="skeleton-line h-3 w-1/3" />
         </div>
-        <div className="skeleton-line h-6 w-24 rounded-md"></div>
+        <div className="skeleton-line h-6 w-24 rounded-md" />
       </div>
     </div>
   );
@@ -49,16 +57,22 @@ export function SearchResults({
     setLoading(true);
 
     fetch(`/api/search?q=${encodeURIComponent(q)}`)
-      .then((r) => r.json())
+      .then((r) => r.json() as Promise<SearchApiResponse>)
       .then((data) => {
         if (cancelled) return;
 
-        const normalized: SearchResult[] = (data.results ?? []).map(
-          (r: any) => ({
-            ...r,
-            occurrenceId: Number(r.occurrenceId),
-          }),
-        );
+        const normalized: SearchResult[] = (data.results ?? [])
+          .map((r) => {
+            const occurrenceId = Number(r.occurrenceId);
+
+            if (!Number.isFinite(occurrenceId)) return null;
+
+            return {
+              ...(r as ResultItemData),
+              occurrenceId,
+            };
+          })
+          .filter(Boolean) as SearchResult[];
 
         setResults(normalized);
         setLoading(false);
