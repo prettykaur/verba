@@ -52,10 +52,15 @@ a {
   width: 100%;
 }
 
+.verba-link:focus-visible::after {
+  width: 100%;
+}
+
 /* ------------------------------
    Verba Marigold Button Hover
 ------------------------------ */
-.btn-marigold-hover:hover {
+.btn-marigold-hover:hover,
+.btn-marigold-hover:focus-visible {
   background-color: #fde68a;
   transition: background-color 0.2s ease;
 }
@@ -74,6 +79,11 @@ a {
   border-color: rgba(15, 23, 42, 0.14); /* subtle slate/ink darkening */
 }
 
+.card-hover-marigold:focus-within {
+  background-color: #fffdf5; /* paper-like, very faint marigold */
+  border-color: rgba(15, 23, 42, 0.14); /* subtle slate/ink darkening */
+}
+
 /* ---------------------------------
    Verba Button Press / Lift States
 ---------------------------------- */
@@ -85,7 +95,8 @@ a {
 }
 
 /* slight lift on hover */
-.btn-press:hover {
+.btn-press:hover,
+.btn-press:focus-visible {
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15);
 }
@@ -107,6 +118,11 @@ a {
 }
 
 .card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+}
+
+.card-lift:focus-within {
   transform: translateY(-2px);
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
 }
@@ -243,4 +259,8 @@ a {
 
 .result-clue {
   font-family: 'Inter', sans-serif;
+}
+
+.result-clue.verba-link::after {
+  height: 2px;
 }

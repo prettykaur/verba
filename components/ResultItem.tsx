@@ -83,12 +83,10 @@ export function ResultItem({
         <div className="min-w-0 flex-1 overflow-hidden">
           <Link
             href={clueHref}
-            className="block no-underline"
+            className="verba-link result-clue text-brand-slate-900 line-clamp-2 inline-block text-[1.05rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem]"
             onClick={handleResultClick}
           >
-            <div className="result-clue text-brand-slate-900 line-clamp-2 text-[1.05rem] font-semibold leading-snug tracking-tight sm:text-[1.25rem]">
-              <Highlight text={clue} query={query ?? ''} />
-            </div>
+            <Highlight text={clue} query={query ?? ''} />
           </Link>
 
           {/* meta row */}
@@ -122,8 +120,7 @@ export function ResultItem({
 
         <Link
           href={clueHref}
-          className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue underline-offset-4 hover:underline"
-          onClick={handleResultClick}
+          className="verba-link shrink-0 whitespace-nowrap text-sm text-verba-blue"
         >
           View answer →
         </Link>
