@@ -8,7 +8,6 @@ import Script from 'next/script';
 
 export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
-  themeColor: '#F9FAFB',
   metadataBase: new URL('https://tryverba.com'),
   title: {
     default: 'Verba — Crossword Answers & Clues',
@@ -79,3 +78,7 @@ export default function RootLayout({
     </html>
   );
 }
+
+export const viewport = {
+  themeColor: '#F9FAFB',
+};
