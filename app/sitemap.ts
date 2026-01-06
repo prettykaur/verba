@@ -1,27 +1,35 @@
 // app/sitemap.ts
-import type { MetadataRoute } from "next";
+import type { MetadataRoute } from 'next';
+
+const BASE_URL = 'https://tryverba.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Static hero pages
-  const heroes = [
-    "https://tryverba.com/answers/nyt-mini/2025-10-12",
-    "https://tryverba.com/answers/nyt-mini/2025-10-13",
-    "https://tryverba.com/answers/nyt-mini/2025-10-14",
-    "https://tryverba.com/answers/nyt-mini/2025-10-15",
-    "https://tryverba.com/answers/nyt-mini/2025-10-16",
-    "https://tryverba.com/answers/nyt-mini/2025-10-17",
-    "https://tryverba.com/answers/nyt-mini/2025-10-18",
-    "https://tryverba.com/answers/nyt-mini/2025-10-19",
-    "https://tryverba.com/answers/nyt-mini/2025-10-20",
-    "https://tryverba.com/answers/nyt-mini/2025-10-21",
-  ];
-
   const now = new Date();
 
   return [
-    { url: "https://tryverba.com/", lastModified: now },
-    { url: "https://tryverba.com/answers", lastModified: now },
-    { url: "https://tryverba.com/answers/nyt-mini", lastModified: now },
-    ...heroes.map((url) => ({ url, lastModified: new Date("2025-10-21") })),
+    {
+      url: `${BASE_URL}/`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 1.0,
+    },
+    {
+      url: `${BASE_URL}/browse`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/answers`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/answers/nyt-mini`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
   ];
 }
