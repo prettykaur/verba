@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateShort } from '@/lib/formatDate';
 import { TrackedLink } from '@/components/TrackedLink';
+import { notFound } from 'next/navigation';
 
 export const revalidate = 3600;
+const QUERY_TIMEOUT_MS = 4000;
 
 const SOURCE_NAMES: Record<string, string> = {
   'nyt-mini': 'NYT Mini',
@@ -13,6 +15,7 @@ const SOURCE_NAMES: Record<string, string> = {
 };
 
 const CLASSIC_PAGE_SIZE = 100;
+const MAX_CLASSIC_RESULTS = 5000;
 const LETTERS = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
 
 type PageProps = {
@@ -26,9 +29,9 @@ type ClassicRow = {
   source_name: string | null;
 };
 
-/* =====================================
+/* ===========================
    METADATA
-===================================== */
+=========================== */
 export async function generateMetadata({
   params,
   searchParams,
@@ -49,7 +52,7 @@ export async function generateMetadata({
   const description = isClassic
     ? `Browse classic crossword clues ${
         letter ? `starting with "${letter}" ` : ''
-      }in alphabetical order. Find verified answers, historical usages, and recurring clue patterns from major crossword publications.`
+      }in alphabetical order.`
     : `Recent dates and daily answer pages for ${sourceName}.`;
 
   const url = `https://tryverba.com/answers/${source}`;
@@ -57,15 +60,15 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: `/answers/${source}` },
+    alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'Verba', type: 'website' },
     twitter: { card: 'summary_large_image', title, description },
   };
 }
 
-/* =====================================
+/* ===========================
    PAGE
-===================================== */
+=========================== */
 export default async function SourceIndexPage({
   params,
   searchParams,
@@ -74,71 +77,83 @@ export default async function SourceIndexPage({
   const isClassic = source === 'seed';
 
   /* ===============================
-     CLASSIC CROSSWORD CLUES MODE
-     =============================== */
+     CLASSIC MODE
+  =============================== */
   if (isClassic) {
     const resolvedSearchParams = await searchParams;
     const letterParam = resolvedSearchParams?.letter?.toUpperCase() ?? 'A';
     const currentLetter = LETTERS.includes(letterParam) ? letterParam : 'A';
 
-    const currentPage = Math.max(1, Number(resolvedSearchParams?.page ?? 1));
+    const MAX_PAGE = 50;
+    const currentPage = Math.min(
+      MAX_PAGE,
+      Math.max(1, Number(resolvedSearchParams?.page ?? 1)),
+    );
+
     const from = (currentPage - 1) * CLASSIC_PAGE_SIZE;
     const to = from + CLASSIC_PAGE_SIZE - 1;
 
-    // -------------------------------
-    // Build queries WITHOUT helpers
-    // -------------------------------
-    const baseQuery = supabase
-      .from('v_search_results_pretty')
-      .select('occurrence_id, clue_text, source_name')
-      .eq('source_slug', source)
-      .order('clue_text', { ascending: true });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
 
-    const countQuery = supabase
-      .from('v_search_results_pretty')
-      .select('*', { count: 'exact', head: true })
-      .eq('source_slug', source);
+    let rows: ClassicRow[] = [];
+    let count: number | null = null;
 
-    const filteredDataQuery =
-      currentLetter === '#'
-        ? baseQuery.not('clue_text', 'ilike', '[A-Z]%')
-        : baseQuery.ilike('clue_text', `${currentLetter}%`);
+    try {
+      const baseQuery = supabase
+        .from('v_search_results_pretty')
+        .select('occurrence_id, clue_text, source_name')
+        .eq('source_slug', source)
+        .order('clue_text', { ascending: true });
 
-    const filteredCountQuery =
-      currentLetter === '#'
-        ? countQuery.not('clue_text', 'ilike', '[A-Z]%')
-        : countQuery.ilike('clue_text', `${currentLetter}%`);
+      const countQuery = supabase
+        .from('v_search_results_pretty')
+        .select('*', { count: 'exact', head: true })
+        .eq('source_slug', source);
 
-    const [{ data, error }, { count }] = await Promise.all([
-      filteredDataQuery.range(from, to),
-      filteredCountQuery,
-    ]);
+      const dataQuery =
+        currentLetter === '#'
+          ? baseQuery.not('clue_text', 'ilike', '[A-Z]%')
+          : baseQuery.ilike('clue_text', `${currentLetter}%`);
 
-    if (error) console.error(error);
+      const countFilteredQuery =
+        currentLetter === '#'
+          ? countQuery.not('clue_text', 'ilike', '[A-Z]%')
+          : countQuery.ilike('clue_text', `${currentLetter}%`);
 
-    const rows: ClassicRow[] = (data ?? []) as ClassicRow[];
+      const [dataRes, countRes] = await Promise.all([
+        dataQuery.range(from, to).abortSignal(controller.signal),
+        countFilteredQuery.abortSignal(controller.signal),
+      ]);
+
+      if (dataRes.error) console.error(dataRes.error);
+      if (countRes.error) console.error(countRes.error);
+
+      rows = (dataRes.data ?? []) as ClassicRow[];
+      count = countRes.count ?? null;
+    } catch (err) {
+      console.error('Supabase timeout @classic source:', err);
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const totalPages = Math.min(
+      Math.ceil((count ?? 0) / CLASSIC_PAGE_SIZE),
+      Math.ceil(MAX_CLASSIC_RESULTS / CLASSIC_PAGE_SIZE),
+    );
+
+    if (currentPage > totalPages) notFound();
+
     const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
-
-    const totalPages = Math.max(1, Math.ceil((count ?? 0) / CLASSIC_PAGE_SIZE));
 
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{sourceName}</h1>
 
-        {/* SEO intro copy */}
         <p className="max-w-3xl text-slate-600">
-          This archive contains thousands of classic crossword clues that appear
-          across puzzles from major publications. Browse clues alphabetically to
-          find verified answers, understand historical usage, and recognize
-          recurring clue patterns.
+          Browse classic crossword clues alphabetically.
         </p>
 
-        <p className="max-w-3xl text-slate-600">
-          Select a letter below to explore clues that begin with that letter.
-          Pagination allows you to browse deeper into each section.
-        </p>
-
-        {/* GLOBAL A–Z NAV */}
         <nav className="sticky top-16 z-10 bg-white px-6 py-3">
           <ul className="flex flex-wrap justify-between gap-y-2 text-sm">
             {LETTERS.map((l) => (
@@ -156,33 +171,23 @@ export default async function SourceIndexPage({
           </ul>
         </nav>
 
-        {/* CLUES LIST */}
-        {rows.length === 0 ? (
-          <div className="rounded-lg border bg-white p-4">
-            <p>No clues found for this letter.</p>
-          </div>
-        ) : (
-          <ul className="mt-6 space-y-2">
-            {rows.map((r) => (
-              <li key={r.occurrence_id}>
-                <Link
-                  href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
-                  className="verba-link text-verba-blue"
-                >
-                  {r.clue_text}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="mt-6 space-y-2">
+          {rows.map((r) => (
+            <li key={r.occurrence_id}>
+              <Link
+                href={`/clue/${r.occurrence_id}`}
+                className="verba-link text-verba-blue"
+              >
+                {r.clue_text}
+              </Link>
+            </li>
+          ))}
+        </ul>
 
-        {/* PAGINATION */}
         <nav className="mt-8 flex items-center justify-between text-sm">
           {currentPage > 1 ? (
             <Link
-              href={`/answers/${source}?letter=${currentLetter}&page=${
-                currentPage - 1
-              }`}
+              href={`/answers/${source}?letter=${currentLetter}&page=${currentPage - 1}`}
               className="verba-link text-verba-blue"
             >
               ← Previous
@@ -197,9 +202,7 @@ export default async function SourceIndexPage({
 
           {currentPage < totalPages ? (
             <Link
-              href={`/answers/${source}?letter=${currentLetter}&page=${
-                currentPage + 1
-              }`}
+              href={`/answers/${source}?letter=${currentLetter}&page=${currentPage + 1}`}
               className="verba-link text-verba-blue"
             >
               Next →
@@ -219,24 +222,34 @@ export default async function SourceIndexPage({
   }
 
   /* ===============================
-     NORMAL DAILY PUZZLE MODE
-     =============================== */
-  const { data, error } = await supabase
-    .from('v_search_results_pretty')
-    .select('puzzle_date, source_name')
-    .eq('source_slug', source)
-    .order('puzzle_date', { ascending: false })
-    .limit(500);
+     DAILY MODE
+  =============================== */
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
 
-  if (error) console.error(error);
+  let data: { puzzle_date: string | null; source_name: string | null }[] = [];
 
-  const sourceName =
-    (data?.[0] as { source_name: string | null } | undefined)?.source_name ??
-    SOURCE_NAMES[source] ??
-    source;
+  try {
+    const res = await supabase
+      .from('v_search_results_pretty')
+      .select('puzzle_date, source_name')
+      .eq('source_slug', source)
+      .order('puzzle_date', { ascending: false })
+      .limit(500)
+      .abortSignal(controller.signal);
+
+    if (res.error) console.error(res.error);
+    data = res.data ?? [];
+  } catch (err) {
+    console.error('Supabase timeout @daily source:', err);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const sourceName = data[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
 
   const dates: string[] = [];
-  for (const r of (data ?? []) as { puzzle_date: string | null }[]) {
+  for (const r of data) {
     if (!r.puzzle_date) continue;
     if (!dates.includes(r.puzzle_date)) dates.push(r.puzzle_date);
     if (dates.length >= 60) break;
@@ -246,41 +259,20 @@ export default async function SourceIndexPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{sourceName} — Recent Answers</h1>
 
-      <p className="mt-2 text-slate-600">
-        Find recent days for {sourceName}. You can also view{' '}
-        <Link
-          href={`/answers/${source}/today`}
-          className="verba-link text-verba-blue"
-        >
-          Today
-        </Link>
-      </p>
-
-      <p className="mt-4 text-slate-600">
-        Each {sourceName} daily answer page includes verified clues, solutions,
-        and structured data.
-      </p>
-
-      {dates.length === 0 ? (
-        <div className="mt-6 rounded-lg border bg-white p-4">
-          <p>No dates found for this source yet.</p>
-        </div>
-      ) : (
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {dates.map((d) => (
-            <li key={d}>
-              <TrackedLink
-                href={`/answers/${source}/${d}`}
-                className="btn-marigold-hover btn-press block rounded-lg border bg-white px-3 py-2 text-center text-sm"
-                event="click_source_date"
-                props={{ source, date: d, from: 'source_index' }}
-              >
-                {formatPuzzleDateShort(d)}
-              </TrackedLink>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        {dates.map((d) => (
+          <li key={d}>
+            <TrackedLink
+              href={`/answers/${source}/${d}`}
+              className="btn-marigold-hover btn-press block rounded-lg border bg-white px-3 py-2 text-center text-sm"
+              event="click_source_date"
+              props={{ source, date: d, from: 'source_index' }}
+            >
+              {formatPuzzleDateShort(d)}
+            </TrackedLink>
+          </li>
+        ))}
+      </ul>
 
       <div className="mt-8">
         <Link href="/answers" className="verba-link text-verba-blue">

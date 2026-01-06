@@ -5,12 +5,13 @@ import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateShort } from '@/lib/formatDate';
 
 export const revalidate = 3600; // refresh hourly
+const QUERY_TIMEOUT_MS = 4000;
 
 export const metadata: Metadata = {
   title: 'Daily Crossword Answers | Verba',
   description:
     'Browse daily crossword answers by source. Quick links to recent days for NYT Mini and more.',
-  alternates: { canonical: '/answers' },
+  alternates: { canonical: 'https://tryverba.com/answers' },
   openGraph: {
     title: 'Daily Crossword Answers | Verba',
     description:
@@ -34,20 +35,38 @@ type Row = {
 };
 
 export default async function AnswersHubPage() {
-  const { data, error } = await supabase
-    .from('v_search_results_pretty')
-    .select('source_slug, source_name, puzzle_date')
-    .order('puzzle_date', { ascending: false })
-    .limit(500);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
 
-  if (error) console.error(error);
+  let data: Row[] = [];
+
+  try {
+    const res = await supabase
+      .from('v_search_results_pretty')
+      .select('source_slug, source_name, puzzle_date')
+      .order('puzzle_date', { ascending: false })
+      .limit(500)
+      .abortSignal(controller.signal);
+
+    if (res.error) {
+      console.error('Supabase @answers hub:', res.error);
+    }
+
+    data = (res.data ?? []) as Row[];
+  } catch (err) {
+    console.error('Supabase timeout @answers hub:', err);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const grouped = new Map<string, { name: string; dates: string[] }>();
-  for (const r of (data ?? []) as Row[]) {
+
+  for (const r of data) {
     if (!r.source_slug || !r.puzzle_date) continue;
     const name = r.source_name ?? r.source_slug;
-    if (!grouped.has(r.source_slug))
+    if (!grouped.has(r.source_slug)) {
       grouped.set(r.source_slug, { name, dates: [] });
+    }
     const bucket = grouped.get(r.source_slug)!;
     if (!bucket.dates.includes(r.puzzle_date) && bucket.dates.length < 12) {
       bucket.dates.push(r.puzzle_date);
@@ -59,6 +78,7 @@ export default async function AnswersHubPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Crossword Answers</h1>
+
       <p className="mt-2 text-slate-600">
         Browse daily crossword answers from top sources like the NYT Mini. Click
         a source below or jump directly to{' '}
@@ -70,6 +90,7 @@ export default async function AnswersHubPage() {
         </Link>
         .
       </p>
+
       <p className="mt-4 text-slate-600">
         Verba is a simple crossword answer lookup designed for clarity, speed,
         and accessibility. Each daily page is optimized for search engines with
@@ -104,6 +125,7 @@ export default async function AnswersHubPage() {
                   View all dates
                 </Link>
               </div>
+
               <ul className="flex flex-wrap gap-2">
                 {dates.map((d) => (
                   <li key={d}>
