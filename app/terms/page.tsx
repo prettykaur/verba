@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Terms of Use | Verba',
   description:
     'Simple terms of use for Verba, a crossword clue and answer helper.',
-  alternates: { canonical: '/terms' },
+  alternates: { canonical: 'https://tryverba.com/terms' },
   openGraph: {
     title: 'Terms of Use | Verba',
     description:

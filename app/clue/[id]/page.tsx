@@ -90,7 +90,7 @@ export async function generateMetadata({
     title: baseTitle,
     description: descriptionParts.join(' '),
     alternates: {
-      canonical: `/clue/${idNum}`,
+      canonical: `https://tryverba.com/clue/${idNum}`,
     },
     openGraph: {
       title: baseTitle,

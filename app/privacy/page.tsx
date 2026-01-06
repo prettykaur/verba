@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy | Verba',
   description:
     'Learn how Verba handles basic usage data, search queries, and submissions.',
-  alternates: { canonical: '/privacy' },
+  alternates: { canonical: 'https://tryverba.com/privacy' },
   openGraph: {
     title: 'Privacy Policy | Verba',
     description:

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     'Get in touch with the creator of Verba. Report bugs, request features, or ask questions about crossword clues and answers.',
   alternates: {
-    canonical: '/contact',
+    canonical: 'https://tryverba.com/contact',
   },
   openGraph: {
     title: 'Contact | Verba',
