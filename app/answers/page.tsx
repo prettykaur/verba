@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: 'Daily Crossword Answers | Verba',
   description:
     'Browse daily crossword answers by source. Quick links to recent days for NYT Mini and more.',
-  alternates: { canonical: 'https://tryverba.com/answers' },
+  alternates: { canonical: '/answers' },
   openGraph: {
     title: 'Daily Crossword Answers | Verba',
     description:

@@ -89,6 +89,9 @@ export async function generateMetadata({
   return {
     title: baseTitle,
     description: descriptionParts.join(' '),
+    alternates: {
+      canonical: `/clue/${idNum}`,
+    },
     openGraph: {
       title: baseTitle,
       description: descriptionParts.join(' '),

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'FAQ | Verba',
   description:
     'Answers to common questions about Verba: sources, coverage, how to find daily pages, and how to request new features.',
-  alternates: { canonical: 'https://tryverba.com/faq' },
+  alternates: { canonical: '/faq' },
   openGraph: {
     title: 'FAQ | Verba',
     description:

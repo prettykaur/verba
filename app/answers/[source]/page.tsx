@@ -57,7 +57,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: `/answers/${source}` },
     openGraph: { title, description, url, siteName: 'Verba', type: 'website' },
     twitter: { card: 'summary_large_image', title, description },
   };

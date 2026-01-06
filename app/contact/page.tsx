@@ -1,5 +1,32 @@
 // app/contact/page.tsx
 
+import type { Metadata } from 'next';
+
+export const revalidate = 86400; // 1 day
+
+export const metadata: Metadata = {
+  title: 'Contact | Verba',
+  description:
+    'Get in touch with the creator of Verba. Report bugs, request features, or ask questions about crossword clues and answers.',
+  alternates: {
+    canonical: '/contact',
+  },
+  openGraph: {
+    title: 'Contact | Verba',
+    description:
+      'Get in touch with the creator of Verba. Report bugs, request features, or ask questions about crossword clues and answers.',
+    url: 'https://tryverba.com/contact',
+    siteName: 'Verba',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Contact | Verba',
+    description:
+      'Get in touch with the creator of Verba. Report bugs, request features, or ask questions.',
+  },
+};
+
 export default function ContactPage() {
   return (
     <>

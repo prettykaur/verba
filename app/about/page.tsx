@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'About Verba | Fast Crossword Answers',
   description:
     'Verba is a clean, fast way to look up crossword clues and answers. Simple pages, helpful SEO schema, and quick navigation to daily puzzles.',
-  alternates: { canonical: 'https://tryverba.com/about' },
+  alternates: { canonical: '/about' },
   openGraph: {
     title: 'About Verba | Fast Crossword Answers',
     description:
