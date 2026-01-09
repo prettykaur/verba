@@ -1,4 +1,5 @@
 // components/DailyAnswersList.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -149,9 +150,9 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
         <button
           type="button"
           onClick={handleToggleAll}
-          className="btn-marigold-hover inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium text-slate-800"
-        >
           aria-pressed={revealAll}
+          className="btn-marigold-hover btn-press inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium text-slate-800"
+        >
           {revealAll ? 'Hide all answers' : 'Reveal all answers'}
         </button>
       </div>
