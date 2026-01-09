@@ -1,8 +1,6 @@
-// components/SearchResults.client.tsx
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ResultItem } from '@/components/ResultItem';
 import type { ComponentProps } from 'react';
 
@@ -47,6 +45,9 @@ export function SearchResults({
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>(initialResults);
 
+  // Scroll anchor
+  const resultsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!q) {
       setResults(initialResults);
@@ -64,7 +65,6 @@ export function SearchResults({
         const normalized: SearchResult[] = (data.results ?? [])
           .map((r) => {
             const occurrenceId = Number(r.occurrenceId);
-
             if (!Number.isFinite(occurrenceId)) return null;
 
             return {
@@ -86,6 +86,16 @@ export function SearchResults({
     };
   }, [q, initialResults]);
 
+  // Scroll when results appear
+  useEffect(() => {
+    if (!loading && results.length > 0) {
+      resultsRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  }, [loading, results.length]);
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -97,10 +107,10 @@ export function SearchResults({
   }
 
   return (
-    <>
+    <div ref={resultsRef} className="space-y-3">
       {results.map((r) => (
         <ResultItem key={`result-${r.occurrenceId}`} {...r} query={q} />
       ))}
-    </>
+    </div>
   );
 }
