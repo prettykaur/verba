@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RelatedCluesList } from '@/components/RelatedCluesList.client';
-import { ClueHintActions } from '@/components/ClueHintActions.client';
+// import { ClueHintActions } from '@/components/ClueHintActions.client';
+import { StickyClueSolveBar } from '@/components/StickyClueSolveBar.client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -348,7 +349,8 @@ export default async function CluePage({ params }: PageParams) {
           Solve this clue
         </h2>
 
-        <ClueHintActions
+        {/* Sticky solve bar (viewport-level) */}
+        <StickyClueSolveBar
           clueText={row.clue_text}
           answer={displayAnswer}
           answerFrequency={
