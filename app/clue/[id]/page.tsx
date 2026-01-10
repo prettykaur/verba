@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RelatedCluesList } from '@/components/RelatedCluesList.client';
-// import { ClueHintActions } from '@/components/ClueHintActions.client';
 import { StickyClueSolveBar } from '@/components/StickyClueSolveBar.client';
+import { CluePrevNextNav } from '@/components/CluePrevNextNav.client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -23,7 +23,6 @@ type Row = {
   puzzle_date: string | null;
 };
 
-// ✅ Fix: type the “frequency query” rows (no any[])
 type FreqRow = {
   source_slug: string | null;
   puzzle_date: string | null;
@@ -40,6 +39,16 @@ function positionLabel(number: number | null, direction: Row['direction']) {
 
 function cleanAnswer(s: string) {
   return (s ?? '').replace(/[^A-Za-z]/g, '').toUpperCase();
+}
+
+function clueOrderKey(
+  direction: 'across' | 'down' | null,
+  number: number | null,
+) {
+  return {
+    dirRank: direction === 'across' ? 0 : 1,
+    num: number ?? 0,
+  };
 }
 
 export async function generateMetadata({
@@ -150,7 +159,52 @@ export default async function CluePage({ params }: PageParams) {
       ? `/answers/${encodeURIComponent(row.source_slug)}/${encodeURIComponent(date)}`
       : null;
 
-  // --- Related clues (same answer only) ---
+  /* ------------------------------------------------------------------ */
+  /* Previous / Next clue navigation                                     */
+  /* ------------------------------------------------------------------ */
+
+  let prevClue: { occurrence_id: number; clue_text: string } | null = null;
+  let nextClue: { occurrence_id: number; clue_text: string } | null = null;
+
+  if (row.source_slug && row.puzzle_date) {
+    const { data: allClues } = await supabase
+      .from('v_search_results_pretty')
+      .select('occurrence_id, clue_text, number, direction')
+      .eq('source_slug', row.source_slug)
+      .eq('puzzle_date', row.puzzle_date);
+
+    if (allClues && allClues.length > 0) {
+      const ordered = allClues.slice().sort((a, b) => {
+        const A = clueOrderKey(a.direction, a.number);
+        const B = clueOrderKey(b.direction, b.number);
+        if (A.dirRank !== B.dirRank) return A.dirRank - B.dirRank;
+        return A.num - B.num;
+      });
+
+      const idx = ordered.findIndex(
+        (c) => c.occurrence_id === row.occurrence_id,
+      );
+
+      if (idx > 0) {
+        prevClue = {
+          occurrence_id: ordered[idx - 1].occurrence_id,
+          clue_text: ordered[idx - 1].clue_text,
+        };
+      }
+
+      if (idx >= 0 && idx < ordered.length - 1) {
+        nextClue = {
+          occurrence_id: ordered[idx + 1].occurrence_id,
+          clue_text: ordered[idx + 1].clue_text,
+        };
+      }
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Related clues + frequency logic (unchanged)                         */
+  /* ------------------------------------------------------------------ */
+
   let related: Row[] = [];
 
   if (cleanedCurrent && displayAnswer !== '—') {
@@ -166,49 +220,44 @@ export default async function CluePage({ params }: PageParams) {
       puzzle_date
     `;
 
-    const pat = cleanedCurrent;
-
     const q1 = supabase
       .from('v_search_results_pretty')
       .select(baseSelect)
       .neq('occurrence_id', row.occurrence_id)
-      .ilike('answer_pretty', `%${pat}%`)
-      .order('puzzle_date', { ascending: false })
+      .ilike('answer_pretty', `%${cleanedCurrent}%`)
       .limit(60);
 
     const q2 = supabase
       .from('v_search_results_pretty')
       .select(baseSelect)
       .neq('occurrence_id', row.occurrence_id)
-      .ilike('answer', `%${pat}%`)
-      .order('puzzle_date', { ascending: false })
+      .ilike('answer', `%${cleanedCurrent}%`)
       .limit(60);
 
-    const [{ data: d1, error: e1 }, { data: d2, error: e2 }] =
-      await Promise.all([q1, q2]);
-
-    if (e1) console.error('Supabase @related(answer_pretty):', e1);
-    if (e2) console.error('Supabase @related(answer):', e2);
+    const [{ data: d1 }, { data: d2 }] = await Promise.all([q1, q2]);
 
     const merged = [...((d1 ?? []) as Row[]), ...((d2 ?? []) as Row[])];
 
-    const filtered = merged.filter((r) => {
-      const candidate = cleanAnswer((r.answer_pretty ?? r.answer ?? '').trim());
-      if (!candidate) return false;
-      if (candidate !== cleanedCurrent) return false;
-
-      const samePuzzle =
-        r.source_slug === row.source_slug && r.puzzle_date === row.puzzle_date;
-
-      return !samePuzzle;
-    });
-
     related = Array.from(
-      new Map(filtered.map((r) => [r.occurrence_id, r])).values(),
+      new Map(
+        merged
+          .filter((r) => {
+            const candidate = cleanAnswer(
+              (r.answer_pretty ?? r.answer ?? '').trim(),
+            );
+            return (
+              candidate === cleanedCurrent &&
+              !(
+                r.source_slug === row.source_slug &&
+                r.puzzle_date === row.puzzle_date
+              )
+            );
+          })
+          .map((r) => [r.occurrence_id, r]),
+      ).values(),
     );
   }
 
-  // --- Frequency counter ---
   let seenInCount: number | null = null;
 
   if (cleanedCurrent && displayAnswer !== '—') {
@@ -224,7 +273,6 @@ export default async function CluePage({ params }: PageParams) {
       .ilike('answer', `%${cleanedCurrent}%`)
       .limit(500);
 
-    // ✅ Fix: no any[]
     const merged: FreqRow[] = [
       ...((freq1 ?? []) as FreqRow[]),
       ...((freq2 ?? []) as FreqRow[]),
@@ -233,9 +281,9 @@ export default async function CluePage({ params }: PageParams) {
     const unique = new Set<string>();
     for (const r of merged) {
       const candidate = cleanAnswer((r.answer_pretty ?? r.answer ?? '').trim());
-      if (candidate !== cleanedCurrent) continue;
-      if (!r.source_slug || !r.puzzle_date) continue;
-      unique.add(`${r.source_slug}__${r.puzzle_date}`);
+      if (candidate === cleanedCurrent && r.source_slug && r.puzzle_date) {
+        unique.add(`${r.source_slug}__${r.puzzle_date}`);
+      }
     }
 
     if (row.source_slug && row.puzzle_date) {
@@ -250,35 +298,12 @@ export default async function CluePage({ params }: PageParams) {
     .filter(Boolean)
     .slice(0, 50);
 
-  // --- Schema.org ItemList JSON-LD for related clues ---
-  const site =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-    'https://example.com';
-
-  const relatedJsonLd =
-    related.length === 0
-      ? null
-      : {
-          '@context': 'https://schema.org',
-          '@type': 'ItemList',
-          name: 'Related crossword clues',
-          itemListElement: related.slice(0, 30).map((r, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            url: `${site}/clue/${r.occurrence_id}`,
-            name: r.clue_text,
-          })),
-        };
+  /* ------------------------------------------------------------------ */
+  /* Render                                                              */
+  /* ------------------------------------------------------------------ */
 
   return (
     <div className="space-y-6">
-      {relatedJsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(relatedJsonLd) }}
-        />
-      )}
-
       {/* Breadcrumbs */}
       <nav className="mb-4 text-xs text-slate-500">
         <Link href="/" className="verba-link text-verba-blue">
@@ -303,53 +328,32 @@ export default async function CluePage({ params }: PageParams) {
 
       <h1 className="text-2xl font-bold">{row.clue_text}</h1>
 
-      {/* Meta row */}
       <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-600">
         {posLabel && <span>{posLabel}</span>}
-        {posLabel && <span aria-hidden>·</span>}
-
         {letterCount > 0 && (
           <>
-            <span>
-              {letterCount} letter{letterCount === 1 ? '' : 's'}
-            </span>
             <span aria-hidden>·</span>
+            <span>{letterCount} letters</span>
           </>
         )}
-
-        {row.source_slug && (
+        {date && (
           <>
+            <span aria-hidden>·</span>
             <Link
-              href={`/answers/${row.source_slug}`}
+              href={`/answers/${row.source_slug}/${date}`}
               className="verba-link text-verba-blue"
             >
-              {sourceName}
+              {displayDate}
             </Link>
-            <span aria-hidden>·</span>
           </>
-        )}
-
-        {date && (
-          <Link
-            href={`/answers/${row.source_slug}/${date}${
-              row.number && row.direction
-                ? `#${row.number}-${row.direction}`
-                : ''
-            }`}
-            className="verba-link text-verba-blue"
-          >
-            {displayDate}
-          </Link>
         )}
       </div>
 
-      {/* Answer block */}
       <section className="mt-6 rounded-xl border bg-white p-6">
         <h2 className="text-base font-semibold text-slate-900">
           Solve this clue
         </h2>
 
-        {/* Sticky solve bar (viewport-level) */}
         <StickyClueSolveBar
           clueText={row.clue_text}
           answer={displayAnswer}
@@ -365,15 +369,7 @@ export default async function CluePage({ params }: PageParams) {
         </div>
       </section>
 
-      {/* Related clues */}
-      <RelatedCluesList
-        rows={related}
-        currentSourceSlug={row.source_slug}
-        currentDate={row.puzzle_date}
-        seenInCount={seenInCount}
-        initialCount={6}
-        step={6}
-      />
+      <CluePrevNextNav prev={prevClue} next={nextClue} />
 
       {puzzleUrl && (
         <div className="mt-6 text-sm">
@@ -382,6 +378,15 @@ export default async function CluePage({ params }: PageParams) {
           </Link>
         </div>
       )}
+
+      <RelatedCluesList
+        rows={related}
+        currentSourceSlug={row.source_slug}
+        currentDate={row.puzzle_date}
+        seenInCount={seenInCount}
+        initialCount={6}
+        step={6}
+      />
     </div>
   );
 }
