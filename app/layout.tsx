@@ -62,12 +62,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
-      <body className="bg-verba-cream text-verba-slate antialiased">
+      <body className="flex min-h-screen flex-col bg-verba-cream text-verba-slate antialiased">
         <Header />
-        <main className="mx-auto max-w-3xl px-4 py-8">{children}</main>
+
+        <main className="mx-auto max-w-3xl flex-1 px-4 py-8">{children}</main>
+
         <Footer />
 
-        {/* Plausible (standard snippet) */}
         <Script
           defer
           data-domain="tryverba.com"
