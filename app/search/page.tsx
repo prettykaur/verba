@@ -1,9 +1,9 @@
 // app/search/page.tsx
 import { headers } from 'next/headers';
 import { SearchBar } from '@/components/SearchBar';
-// import { ResultItem } from '@/components/ResultItem';
 import { SearchHint } from '@/components/SearchHint';
 import { SearchResults } from '@/components/SearchResults.client';
+import { TopSearches } from '@/components/TopSearches';
 
 type Row = {
   occurrenceId: number;
@@ -53,6 +53,12 @@ export default async function SearchPage({
         <SearchBar initialQuery={q} />
         <SearchHint q={q} count={count} />
       </div>
+
+      {!q && (
+        <section className="mt-8">
+          <TopSearches title="Popular Searches" />
+        </section>
+      )}
 
       <section id="results" className="mt-6 space-y-3">
         <SearchResults q={q} initialResults={results} />

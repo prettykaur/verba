@@ -1,6 +1,9 @@
 // app/page.tsx
 import { SearchBar } from '@/components/SearchBar';
 import { Card, CardBody } from '@/components/ui/Card';
+import { TopSearches } from '@/components/TopSearches';
+
+export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   return (
@@ -11,6 +14,10 @@ export default function HomePage() {
           Get instant crossword answers — search by clue text or pattern.
         </p>
         <SearchBar />
+      </section>
+
+      <section className="mt-10">
+        <TopSearches />
       </section>
 
       <section className="mt-12 space-y-3">
