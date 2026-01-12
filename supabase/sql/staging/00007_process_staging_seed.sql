@@ -1,7 +1,5 @@
 -- ===========================================
 -- UPDATED 00007_process_staging_seed.sql
--- Author: Pretty Kaur
--- Date: 2025-12-07
 -- Generic promotion from staging_occurrence_seed
 -- Handles arbitrary source_slug (e.g. 'nyt-mini')
 -- ===========================================
@@ -54,6 +52,20 @@ set slug_md5      = coalesce(c.slug_md5, md5(c.text)),
 where c.slug_md5 is null
    or c.slug_readable is null;
 
+-- 3.5) DELETE existing occurrences for affected puzzle_days
+delete from clue_occurrence co
+using puzzle_day pd, puzzle_source ps
+where co.puzzle_day_id = pd.id
+  and pd.source_id = ps.id
+  and ps.slug in (
+    select distinct coalesce(nullif(source_slug,''), 'seed')
+    from staging_occurrence_seed
+  )
+  and pd.puzzle_date in (
+    select distinct coalesce(puzzle_date, date '2025-01-01')
+    from staging_occurrence_seed
+  );
+
 -- 4) Insert OCCURRENCES (one per staging row)
 insert into clue_occurrence (
   puzzle_day_id,
@@ -100,3 +112,13 @@ set answer_display = format_answer(answer, enumeration, ' ')
 where enumeration is not null
   and enumeration <> ''
   and answer_display is null;
+
+-- 7) Auto-fill enumeration for answers that don't have it
+update clue_occurrence
+set enumeration = generate_enumeration(answer)
+where enumeration is null;
+
+-- 8) Auto-fill answer_display if still missing
+update clue_occurrence
+set answer_display = format_answer(answer, enumeration, ' ')
+where answer_display is null;
