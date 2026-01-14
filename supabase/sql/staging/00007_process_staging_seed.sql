@@ -1,7 +1,10 @@
 -- ===========================================
--- UPDATED 00007_process_staging_seed.sql
--- Generic promotion from staging_occurrence_seed
--- Handles arbitrary source_slug (e.g. 'nyt-mini')
+-- Scripted: 00007_process_staging_seed.sql
+-- Author: Pretty Kaur
+-- Date: 2026-01-14
+-- Purpose:
+--   - Generic promotion from staging_occurrence_seed
+--   - Handles arbitrary source_slug (e.g. 'nyt-mini')
 -- ===========================================
 
 -- 0) Ensure base puzzle_type exists
@@ -74,6 +77,7 @@ insert into clue_occurrence (
   direction,
   answer,
   enumeration,
+  enumeration_source,
   source_url
 )
 select
@@ -83,6 +87,7 @@ select
   s.direction,
   upper(s.answer),
   nullif(s.enumeration,''),
+  coalesce(s.enumeration_source, 'derived'),
   nullif(s.source_url,'')
 from staging_occurrence_seed s
 join puzzle_source ps
