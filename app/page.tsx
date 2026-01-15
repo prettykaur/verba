@@ -2,6 +2,7 @@
 import { SearchBar } from '@/components/SearchBar';
 import { Card, CardBody } from '@/components/ui/Card';
 import { TopSearches } from '@/components/TopSearches';
+import { EmailSubscribe } from '@/components/EmailSubscribe';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +56,19 @@ export default function HomePage() {
             </p>
           </CardBody>
         </Card>
+      </section>
+
+      <section className="mt-20 border-t bg-slate-50 py-16">
+        <div className="mx-auto max-w-3xl space-y-4 px-4 text-center">
+          <h2 className="text-xl font-semibold">Get better at crosswords</h2>
+          <p className="text-sm text-slate-600">
+            Occasional tips, new features, and improvements to Verba. No spam.
+          </p>
+
+          <div className="mx-auto w-full max-w-2xl">
+            <EmailSubscribe source="home_bottom" />
+          </div>
+        </div>
       </section>
     </>
   );

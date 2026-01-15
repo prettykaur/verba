@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { EmailSubscribe } from '@/components/EmailSubscribe';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -71,94 +72,106 @@ export default function SubmitPage() {
   return (
     <>
       {/* <main className="mx-auto max-w-3xl px-4 py-10"> */}
-      <section className="space-y-4">
-        <h1 className="text-2xl font-bold">Submit a clue</h1>
-        <p className="text-slate-700">
-          Missing an answer or see something incorrect? Send us a clue and
-          we&apos;ll review it as we improve Verba.
-        </p>
+      <section className="space-y-6">
+        <div className="mx-auto max-w-2xl space-y-6 px-4 sm:px-0">
+          <h1 className="text-2xl font-bold">Submit a clue</h1>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-4 space-y-4 rounded-xl border bg-white p-4"
-        >
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="clue">
-              Clue text<span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="clue"
-              value={clue}
-              onChange={(e) => setClue(e.target.value)}
-              placeholder='e.g. "Sushi seaweed"'
-              required
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="email">
-              Email<span className="text-red-500">*</span>
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="pattern">
-                Pattern / answer (optional)
-              </label>
-              <Input
-                id="pattern"
-                value={pattern}
-                onChange={(e) => setPattern(e.target.value)}
-                placeholder='e.g. "NORI" or "N?RI"'
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="source">
-                Source (optional)
-              </label>
-              <Input
-                id="source"
-                value={source}
-                onChange={(e) => setSource(e.target.value)}
-                placeholder="e.g. nyt-mini"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          )}
-          {status === 'success' && (
-            <p className="text-sm text-green-600">
-              Thanks! Your clue has been submitted.
-            </p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={status === 'submitting'}
-            className="rounded-lg"
+          <form
+            onSubmit={handleSubmit}
+            className="mt-4 space-y-4 rounded-xl border bg-white p-6"
           >
-            {status === 'submitting' ? 'Submitting…' : 'Submit clue'}
-          </Button>
-        </form>
+            <p className="text-slate-700">
+              Missing an answer or see something incorrect? Send us a clue and
+              we&apos;ll review it as we improve Verba.
+            </p>
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="clue">
+                Clue text<span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="clue"
+                value={clue}
+                onChange={(e) => setClue(e.target.value)}
+                placeholder='e.g. "Sushi seaweed"'
+                required
+              />
+            </div>
 
-        <p className="text-xs text-slate-500">
-          By submitting, you confirm you have the right to share this clue and
-          understand it may be used to improve Verba.
-        </p>
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="email">
+                Email<span className="text-red-500">*</span>
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-sm font-medium" htmlFor="pattern">
+                  Pattern / answer (optional)
+                </label>
+                <Input
+                  id="pattern"
+                  value={pattern}
+                  onChange={(e) => setPattern(e.target.value)}
+                  placeholder='e.g. "NORI" or "N?RI"'
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium" htmlFor="source">
+                  Source (optional)
+                </label>
+                <Input
+                  id="source"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  placeholder="e.g. nyt-mini"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            {status === 'success' && (
+              <p className="text-sm text-green-600">
+                Thanks! Your clue has been submitted.
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={status === 'submitting'}
+              className="rounded-lg"
+            >
+              {status === 'submitting' ? 'Submitting…' : 'Submit clue'}
+            </Button>
+            <p className="text-xs text-slate-500">
+              By submitting, you confirm you have the right to share this clue
+              and understand it may be used to improve Verba.
+            </p>
+          </form>
+
+          {status === 'success' && (
+            <div className="mt-8 rounded-xl border bg-slate-50 p-6">
+              <p className="mb-2 text-sm text-slate-700">
+                Want updates when we improve answers or add new features?
+              </p>
+              <div className="max-w-2xl">
+                <EmailSubscribe />
+              </div>
+            </div>
+          )}
+        </div>
       </section>
       {/* </main> */}
     </>
