@@ -7,20 +7,32 @@ import { Button } from '@/components/ui/Button';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
 export default function SubmitPage() {
   const [clue, setClue] = useState('');
   const [pattern, setPattern] = useState('');
   const [source, setSource] = useState('');
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = clue.trim();
-    if (!trimmed) {
+
+    const trimmedClue = clue.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedClue) {
       setError('Please enter a clue.');
       return;
     }
+
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setStatus('submitting');
     setError(null);
 
@@ -29,9 +41,10 @@ export default function SubmitPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clue_text: trimmed,
+          clue_text: trimmedClue,
           pattern: pattern.trim() || undefined,
           source_slug: source.trim() || undefined,
+          email: trimmedEmail,
         }),
       });
 
@@ -47,6 +60,7 @@ export default function SubmitPage() {
       setClue('');
       setPattern('');
       setSource('');
+      setEmail('');
     } catch (err) {
       console.error(err);
       setStatus('error');
@@ -77,6 +91,20 @@ export default function SubmitPage() {
               value={clue}
               onChange={(e) => setClue(e.target.value)}
               placeholder='e.g. "Sushi seaweed"'
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium" htmlFor="email">
+              Email<span className="text-red-500">*</span>
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
               required
             />
           </div>
