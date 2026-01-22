@@ -83,8 +83,8 @@ export async function generateMetadata({
 
   const sourceName = SOURCE_NAMES[source] ?? source;
 
-  const title = `${sourceName} Crossword Answers — ${displayDate} | Verba`;
-  const description = `All clues & solutions for ${sourceName} on ${displayDate}. Fast, clean answers powered by Verba.`;
+  const title = `${sourceName} Crossword Answers - ${displayDate} | Verba`;
+  const description = `Today’s ${sourceName} crossword answers for ${displayDate}. All clues and solutions, updated daily.`;
   const url = `https://tryverba.com/answers/${encodeURIComponent(source)}/${encodeURIComponent(isoDate)}`;
 
   return {
@@ -221,11 +221,21 @@ export default async function DailyAnswersPage({ params }: PageParams) {
         />
       )}
       <h1 className="text-2xl font-bold">
-        {sourceName} — Answers for {displayDate}
+        {sourceName} Crossword Answers – {displayDate}
       </h1>
       <p className="mt-2 text-slate-600">
-        {HERO_INTROS[heroKey] ??
-          `All clues & solutions for ${sourceName} on ${displayDate}. Use the site search for more days and sources.`}
+        {HERO_INTROS[heroKey] ?? (
+          <>
+            <span>
+              Today’s {sourceName} crossword answers for {displayDate}.
+            </span>{' '}
+            <span>
+              Below you’ll find all clues and solutions for the {sourceName}{' '}
+              puzzle, updated daily.
+            </span>{' '}
+            <span>Use search to find answers from other dates or puzzles.</span>
+          </>
+        )}
       </p>
       {rows.length === 0 ? (
         <div className="mt-8 rounded-xl border bg-white p-6">
