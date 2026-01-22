@@ -49,6 +49,8 @@ const HERO_INTROS: Record<string, string> = {
   'nyt-mini/2025-10-21': 'Clear, concise answers for Tuesday’s NYT Mini. Done.',
 };
 
+// Source slugs must match /URLS.md exactly.
+// Do not rename public slugs once indexed.
 const SOURCE_NAMES: Record<string, string> = {
   'nyt-mini': 'NYT Mini',
 };
