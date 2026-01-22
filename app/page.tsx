@@ -3,8 +3,33 @@ import { SearchBar } from '@/components/SearchBar';
 import { Card, CardBody } from '@/components/ui/Card';
 import { TopSearches } from '@/components/TopSearches';
 import { EmailSubscribe } from '@/components/EmailSubscribe';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
+
+const TODAYS_PUZZLES = [
+  {
+    name: 'NYT Mini',
+    slug: 'nyt-mini',
+    active: true,
+  },
+  {
+    name: 'LA Times',
+    active: false,
+  },
+  {
+    name: 'The Guardian',
+    active: false,
+  },
+  {
+    name: 'The Atlantic',
+    active: false,
+  },
+  {
+    name: 'USA Today',
+    active: false,
+  },
+];
 
 export default function HomePage() {
   return (
@@ -26,20 +51,32 @@ export default function HomePage() {
           Today’s Puzzles
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {[
-            'NYT Mini',
-            'LA Times',
-            'The Guardian',
-            'The Atlantic',
-            'Newsday',
-            'The Telegraph',
-          ].map((name) => (
-            <Card key={name}>
-              <CardBody className="text-brand-slate-700 text-center font-medium">
-                {name}
-              </CardBody>
-            </Card>
-          ))}
+          {TODAYS_PUZZLES.map((puzzle) =>
+            puzzle.active ? (
+              <Link
+                key={puzzle.name}
+                href={`/answers/${puzzle.slug}/today`}
+                className="block"
+              >
+                <Card className="card-hover-marigold card-lift transition">
+                  <CardBody className="space-y-1 text-center font-medium">
+                    <div>{puzzle.name}</div>
+
+                    <div className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                      Today
+                    </div>
+                  </CardBody>
+                </Card>
+              </Link>
+            ) : (
+              <Card key={puzzle.name} className="cursor-not-allowed opacity-50">
+                <CardBody className="text-center font-medium">
+                  {puzzle.name}
+                  <div className="mt-1 text-xs text-slate-500">Coming soon</div>
+                </CardBody>
+              </Card>
+            ),
+          )}
         </div>
       </section>
 
