@@ -5,6 +5,7 @@ import { formatPuzzleDateLong } from '@/lib/formatDate';
 // import { RevealAnswer } from '@/components/RevealAnswer';
 import { HashScroll } from '@/components/HashScroll';
 import { DailyAnswersList } from '@/components/DailyAnswersList';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic'; // remove `as const`
 export const revalidate = 0;
@@ -37,7 +38,7 @@ const HERO_INTROS: Record<string, string> = {
   'nyt-mini/2025-10-15':
     'Midweek Mini? Here are the answers, fast and spoiler-light.',
   'nyt-mini/2025-10-16':
-    'All clues & entries for Thursday’s NYT Mini—swift reference.',
+    'All clues & entries for Thursday’s NYT Mini — swift reference.',
   'nyt-mini/2025-10-17':
     'Friday Mini solutions you can skim in seconds. No fluff.',
   'nyt-mini/2025-10-18':
@@ -221,7 +222,10 @@ export default async function DailyAnswersPage({ params }: PageParams) {
         />
       )}
       <h1 className="text-2xl font-bold">
-        {sourceName} Crossword Answers – {displayDate}
+        <Link href={`/answers/${source}`} className="verba-link">
+          {sourceName}
+        </Link>{' '}
+        Crossword Answers – {displayDate}
       </h1>
       <p className="mt-2 text-slate-600">
         {HERO_INTROS[heroKey] ?? (
@@ -258,6 +262,67 @@ export default async function DailyAnswersPage({ params }: PageParams) {
       ) : (
         <DailyAnswersList rows={rows} />
       )}
+
+      <hr className="my-10 border-slate-200" />
+
+      <section className="mt-10 space-y-6">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">
+            About this puzzle
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            This page contains all clues and answers for the{' '}
+            <Link
+              href={`/answers/${source}`}
+              className="verba-link text-verba-blue"
+            >
+              {sourceName} crossword
+            </Link>{' '}
+            published on {displayDate}. The{' '}
+            <Link
+              href={`/answers/${source}`}
+              className="verba-link text-verba-blue"
+            >
+              {sourceName}
+            </Link>{' '}
+            is a short-form daily puzzle designed for quick solving, featuring a
+            compact grid and straightforward clues.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">
+            Looking for another day?
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Use the{' '}
+            <Link href="/search" className="verba-link text-verba-blue">
+              site search
+            </Link>{' '}
+            to find answers from other dates, or browse{' '}
+            <Link
+              href={`/answers/${source}`}
+              className="verba-link text-verba-blue"
+            >
+              recent {sourceName} puzzles
+            </Link>
+            .
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">
+            Stuck on a different clue?
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            <Link href="/search" className="verba-link text-verba-blue">
+              Search
+            </Link>{' '}
+            by clue text or pattern to find answers from other puzzles and
+            dates.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

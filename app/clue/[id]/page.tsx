@@ -369,6 +369,15 @@ export default async function CluePage({ params }: PageParams) {
         </div>
       </section>
 
+      <section className="mt-6 rounded-xl border bg-slate-50 p-4 text-sm">
+        <h2 className="font-semibold">About this clue</h2>
+        <p className="mt-1 text-slate-700">
+          This clue appeared in the {sourceName} crossword
+          {displayDate ? ` on ${displayDate}` : ''}. The answer{' '}
+          <strong>{displayAnswer}</strong> is a {letterCount}-letter entry.
+        </p>
+      </section>
+
       <CluePrevNextNav prev={prevClue} next={nextClue} />
 
       {puzzleUrl && (
