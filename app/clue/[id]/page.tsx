@@ -261,36 +261,16 @@ export default async function CluePage({ params }: PageParams) {
   let seenInCount: number | null = null;
 
   if (cleanedCurrent && displayAnswer !== '—') {
-    const { data: freq1 } = await supabase
+    const { count } = await supabase
       .from('v_search_results_pretty')
-      .select('source_slug,puzzle_date,answer,answer_pretty')
-      .ilike('answer_pretty', `%${cleanedCurrent}%`)
-      .limit(500);
+      .select('puzzle_date', { count: 'exact', head: true })
+      .eq('source_slug', row.source_slug)
+      .or(`answer_pretty.eq.${displayAnswer},answer.eq.${displayAnswer}`);
 
-    const { data: freq2 } = await supabase
-      .from('v_search_results_pretty')
-      .select('source_slug,puzzle_date,answer,answer_pretty')
-      .ilike('answer', `%${cleanedCurrent}%`)
-      .limit(500);
-
-    const merged: FreqRow[] = [
-      ...((freq1 ?? []) as FreqRow[]),
-      ...((freq2 ?? []) as FreqRow[]),
-    ];
-
-    const unique = new Set<string>();
-    for (const r of merged) {
-      const candidate = cleanAnswer((r.answer_pretty ?? r.answer ?? '').trim());
-      if (candidate === cleanedCurrent && r.source_slug && r.puzzle_date) {
-        unique.add(`${r.source_slug}__${r.puzzle_date}`);
-      }
+    if (typeof count === 'number') {
+      // subtract current puzzle
+      seenInCount = Math.max(count - 1, 0);
     }
-
-    if (row.source_slug && row.puzzle_date) {
-      unique.delete(`${row.source_slug}__${row.puzzle_date}`);
-    }
-
-    seenInCount = unique.size;
   }
 
   const otherCluesForSameAnswer = related
@@ -358,11 +338,23 @@ export default async function CluePage({ params }: PageParams) {
           clueText={row.clue_text}
           answer={displayAnswer}
           answerFrequency={
-            typeof seenInCount === 'number' ? seenInCount + 1 : undefined
+            typeof seenInCount === 'number' && seenInCount > 0
+              ? seenInCount + 1
+              : undefined
           }
           otherCluesForSameAnswer={otherCluesForSameAnswer}
           definition={null}
         />
+
+        {typeof seenInCount === 'number' && seenInCount > 0 && (
+          <div className="mt-3 text-xs text-slate-500">
+            Answer appears in{' '}
+            <strong className="font-medium text-slate-700">
+              {seenInCount}
+            </strong>{' '}
+            other puzzle{seenInCount === 1 ? '' : 's'}
+          </div>
+        )}
 
         <div className="mt-4 border-t pt-4 text-xs text-slate-500">
           Hints & letter-by-letter reveal coming soon.
@@ -392,7 +384,6 @@ export default async function CluePage({ params }: PageParams) {
         rows={related}
         currentSourceSlug={row.source_slug}
         currentDate={row.puzzle_date}
-        seenInCount={seenInCount}
         initialCount={6}
         step={6}
       />
