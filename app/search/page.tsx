@@ -4,6 +4,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { SearchHint } from '@/components/SearchHint';
 import { SearchResults } from '@/components/SearchResults.client';
 import { TopSearches } from '@/components/TopSearches';
+import { PopularClues } from '@/components/PopularClues';
 
 type Row = {
   occurrenceId: number;
@@ -55,8 +56,9 @@ export default async function SearchPage({
       </div>
 
       {!q && (
-        <section className="mt-8">
+        <section className="mt-8 space-y-10">
           <TopSearches title="Popular Searches" />
+          <PopularClues title="Popular Clues" />
         </section>
       )}
 

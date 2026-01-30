@@ -25,7 +25,12 @@ export async function TopSearches({
           >
             <Card className="card-hover-marigold card-lift hover:border-brand-ink transition hover:shadow-sm">
               <CardBody className="text-brand-slate-700 text-center font-medium">
-                <span className="font-mono text-sm">{query}</span>
+                <div className="text-sm font-medium text-slate-800">
+                  {query}
+                </div>
+                <div className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-400">
+                  Search term
+                </div>
               </CardBody>
             </Card>
           </Link>
