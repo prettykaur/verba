@@ -64,7 +64,16 @@ export function ResultItem({
         }`
       : undefined;
 
-  const clueHref = `/clue/${encodeURIComponent(String(occurrenceId))}`;
+  const clueHref =
+    sourceSlug && clue
+      ? `/clue/${encodeURIComponent(
+          clue
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, ''),
+        )}?occ=${occurrenceId}`
+      : `/clue/${encodeURIComponent(String(occurrenceId))}`;
 
   const isSeed = slug === 'seed';
 

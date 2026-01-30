@@ -136,7 +136,7 @@ export function RelatedCluesList({
                     <div className="min-w-0 flex-1">
                       {/* Clue */}
                       <Link
-                        href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
+                        href={`/clue/${r.occurrence_id}`}
                         className="block font-medium leading-snug text-slate-900 hover:underline"
                         onClick={() => {
                           track('click_related_clue', {
