@@ -1,3 +1,4 @@
+// /answers/[source]/[date]/page.tsx
 import type { Metadata } from 'next';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
@@ -44,20 +45,29 @@ const HERO_INTROS: Record<string, string> = {
    TYPES
 -------------------------------- */
 
-type Row = {
-  occurrence_id: number;
-  clue_text: string;
-  answer: string | null;
-  answer_pretty: string | null;
-  number: number | null;
-  direction: 'across' | 'down' | null;
-  source_slug: string;
-  source_name: string | null;
-  puzzle_date: string;
-};
-
 type PageParams = {
   params: Promise<{ source: string; date: string }>;
+};
+
+type SupabaseDailyRow = {
+  id: number;
+  number: number | null;
+  direction: 'across' | 'down' | null;
+  answer: string | null;
+  answer_display: string | null;
+
+  puzzle_day: {
+    puzzle_date: string;
+    puzzle_source: {
+      slug: string;
+      name: string;
+    }[];
+  }[];
+
+  clue: {
+    text: string;
+    slug_readable: string;
+  }[];
 };
 
 /* -------------------------------
@@ -149,26 +159,47 @@ export default async function DailyAnswersPage({ params }: PageParams) {
   const isoDate = decodeURIComponent(awaited.date).trim().slice(0, 10);
   const displayDate = formatPuzzleDateLong(isoDate);
 
-  const { data: rowsData } = await supabase
-    .from('v_search_results_pretty')
+  const { data: rowsData, error } = await supabase
+    .from('clue_occurrence')
     .select(
       `
-      occurrence_id,
-      clue_text,
-      answer,
-      answer_pretty,
-      number,
-      direction,
-      source_slug,
-      source_name,
-      puzzle_date
-    `,
+    id,
+    number,
+    direction,
+    answer,
+    answer_display,
+    puzzle_day:puzzle_day!inner (
+      puzzle_date,
+      puzzle_source:puzzle_source!inner ( slug, name )
+    ),
+    clue:clue!inner ( text, slug_readable )
+  `,
     )
-    .eq('source_slug', source)
-    .eq('puzzle_date', isoDate)
+    .eq('puzzle_day.puzzle_source.slug', source)
+    .eq('puzzle_day.puzzle_date', isoDate)
     .order('number', { ascending: true });
 
-  const rows = (rowsData ?? []) as Row[];
+  if (error) console.error('Supabase @daily answers:', error);
+
+  const rows = (rowsData ?? []).map((r: SupabaseDailyRow) => {
+    const puzzleDay = r.puzzle_day?.[0];
+    const puzzleSource = puzzleDay?.puzzle_source?.[0];
+    const clue = r.clue?.[0];
+
+    return {
+      occurrence_id: r.id,
+      clue_text: clue?.text ?? '',
+      clue_slug: clue?.slug_readable ?? null,
+      answer: r.answer,
+      answer_pretty: r.answer_display,
+      number: r.number,
+      direction: r.direction,
+      source_slug: puzzleSource?.slug ?? source,
+      source_name: puzzleSource?.name ?? null,
+      puzzle_date: puzzleDay?.puzzle_date ?? isoDate,
+    };
+  });
+
   const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
   const heroKey = `${source}/${isoDate}`;
 

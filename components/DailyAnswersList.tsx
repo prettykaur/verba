@@ -11,13 +11,14 @@ import { track } from '@/lib/analytics';
 type Row = {
   occurrence_id: number;
   clue_text: string;
+  clue_slug: string | null;
   answer: string | null;
   answer_pretty: string | null;
   number: number | null;
   direction: 'across' | 'down' | null;
   source_slug: string;
   source_name: string | null;
-  puzzle_date: string; // 'YYYY-MM-DD'
+  puzzle_date: string;
 };
 
 export function DailyAnswersList({ rows }: { rows: Row[] }) {
@@ -84,6 +85,10 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
             // if (r.puzzle_date)
             //   metaBits.push(formatPuzzleDateLong(r.puzzle_date));
 
+            const clueHref = r.clue_slug
+              ? `/clue/${r.clue_slug}?occ=${r.occurrence_id}`
+              : `/clue/${r.occurrence_id}`;
+
             return (
               <li
                 id={anchorId}
@@ -98,7 +103,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                   )}
 
                   <Link
-                    href={`/clue/${encodeURIComponent(String(r.occurrence_id))}`}
+                    href={clueHref}
                     className="block no-underline"
                     onClick={() => {
                       track('click_clue_from_daily', {
