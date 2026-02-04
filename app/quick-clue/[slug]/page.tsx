@@ -2,7 +2,6 @@
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { decodeQuickClueSlug } from '@/lib/quickClueSlug';
-import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +28,18 @@ function phraseToTokens(phrase: string) {
 
 function titleCase(str: string) {
   return str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1));
+}
+
+function formatShortDate(iso: string) {
+  if (!iso) return '';
+
+  const d = new Date(iso);
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = d.toLocaleString('en-GB', { month: 'short' });
+  const year = d.getFullYear();
+
+  return `${day} ${month} ${year}`;
 }
 
 export default async function QuickCluePage({ params }: PageProps) {
@@ -93,6 +104,7 @@ export default async function QuickCluePage({ params }: PageProps) {
   type AnswerAgg = {
     answer: string;
     count: number;
+    firstSeen: string;
     lastSeen: string;
     examples: string[];
   };
@@ -112,11 +124,15 @@ export default async function QuickCluePage({ params }: PageProps) {
       map.set(ans, {
         answer: ans,
         count: 1,
+        firstSeen: row.puzzle_date,
         lastSeen: row.puzzle_date,
         examples: [row.clue_text],
       });
     } else {
       existing.count += 1;
+      if (row.puzzle_date > existing.firstSeen) {
+        existing.firstSeen = row.puzzle_date;
+      }
       if (row.puzzle_date > existing.lastSeen) {
         existing.lastSeen = row.puzzle_date;
       }
@@ -188,12 +204,14 @@ export default async function QuickCluePage({ params }: PageProps) {
                 />
 
                 <span className="shrink-0 text-xs text-slate-500">
-                  Seen {a.count}×
+                  Seen {a.count} times
                 </span>
               </div>
 
               <div className="mt-1 text-xs text-slate-500">
-                Last seen: {formatPuzzleDateLong(a.lastSeen)}
+                {a.answer.replace(/[^A-Za-z]/g, '').length} letters · First seen{' '}
+                {formatShortDate(a.firstSeen)} · Last seen{' '}
+                {formatShortDate(a.lastSeen)}
               </div>
 
               {a.examples.length > 0 && (
