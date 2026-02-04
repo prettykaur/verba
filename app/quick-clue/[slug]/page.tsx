@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { decodeQuickClueSlug } from '@/lib/quickClueSlug';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { RevealAnswer } from '@/components/RevealAnswer';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -175,20 +176,33 @@ export default async function QuickCluePage({ params }: PageProps) {
               key={a.answer}
               className="rounded-lg border bg-slate-50 p-3 text-sm"
             >
-              <div className="flex justify-between">
-                <strong>{a.answer}</strong>
-                <span className="text-xs text-slate-500">Seen {a.count}×</span>
+              <div className="flex items-center justify-between gap-3">
+                <RevealAnswer
+                  answer={a.answer}
+                  size="md"
+                  eventProps={{
+                    surface: 'quick_clue',
+                    clue_phrase: phrase,
+                    answer_len: a.answer.replace(/[^A-Za-z]/g, '').length,
+                  }}
+                />
+
+                <span className="shrink-0 text-xs text-slate-500">
+                  Seen {a.count}×
+                </span>
               </div>
 
               <div className="mt-1 text-xs text-slate-500">
                 Last seen: {formatPuzzleDateLong(a.lastSeen)}
               </div>
 
-              <ul className="mt-2 list-disc pl-4 text-xs text-slate-600">
-                {a.examples.map((ex, i) => (
-                  <li key={i}>{ex}</li>
-                ))}
-              </ul>
+              {a.examples.length > 0 && (
+                <ul className="mt-2 list-disc pl-4 text-xs text-slate-600">
+                  {a.examples.map((ex, i) => (
+                    <li key={i}>{ex}</li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
