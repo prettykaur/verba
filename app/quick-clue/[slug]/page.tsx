@@ -280,12 +280,12 @@ export default async function QuickCluePage({ params }: PageProps) {
   };
 
   /* -----------------------------
-     Compute token + URLs
+     Compute tokens + URLs
   ----------------------------- */
 
   const tokensForLinks = phraseToTokens(phrase);
-  const primaryToken =
-    tokensForLinks.sort((a, b) => b.length - a.length)[0] ?? null;
+  const primaryToken = tokensForLinks[0] ?? null;
+  const secondaryToken = tokensForLinks.length > 1 ? tokensForLinks[1] : null;
 
   const letterSearchHref = answerLen ? `/search?len=${answerLen}` : null;
 
@@ -442,6 +442,17 @@ export default async function QuickCluePage({ params }: PageProps) {
             <li>
               <a href={tokenSearchHref} className="verba-link text-verba-blue">
                 Browse all crossword clues containing “{primaryToken}”
+              </a>
+            </li>
+          )}
+
+          {secondaryToken && secondaryToken !== primaryToken && (
+            <li>
+              <a
+                href={`/search?q=${encodeURIComponent(secondaryToken)}`}
+                className="verba-link text-verba-blue"
+              >
+                Browse all crossword clues containing “{secondaryToken}”
               </a>
             </li>
           )}
