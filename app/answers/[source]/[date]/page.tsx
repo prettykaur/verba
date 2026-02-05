@@ -160,45 +160,41 @@ export default async function DailyAnswersPage({ params }: PageParams) {
   const displayDate = formatPuzzleDateLong(isoDate);
 
   const { data: rowsData, error } = await supabase
-    .from('clue_occurrence')
+    .from('v_search_results_pretty')
     .select(
       `
-    id,
+    occurrence_id,
+    clue_text,
+    clue_slug_readable,
+    answer,
+    answer_pretty,
     number,
     direction,
-    answer,
-    answer_display,
-    puzzle_day:puzzle_day!inner (
-      puzzle_date,
-      puzzle_source:puzzle_source!inner ( slug, name )
-    ),
-    clue:clue!inner ( text, slug_readable )
+    source_slug,
+    source_name,
+    puzzle_date
   `,
     )
-    .eq('puzzle_day.puzzle_source.slug', source)
-    .eq('puzzle_day.puzzle_date', isoDate)
+    .eq('source_slug', source)
+    .eq('puzzle_date', isoDate)
     .order('number', { ascending: true });
 
   if (error) console.error('Supabase @daily answers:', error);
 
-  const rows = (rowsData ?? []).map((r: SupabaseDailyRow) => {
-    const puzzleDay = r.puzzle_day?.[0];
-    const puzzleSource = puzzleDay?.puzzle_source?.[0];
-    const clue = r.clue?.[0];
+  const rows = (rowsData ?? []).map((r) => ({
+    occurrence_id: r.occurrence_id,
+    clue_text: r.clue_text,
+    clue_slug: r.clue_slug_readable,
+    answer: r.answer,
+    answer_pretty: r.answer_pretty,
+    number: r.number,
+    direction: r.direction,
+    source_slug: r.source_slug,
+    source_name: r.source_name,
+    puzzle_date: r.puzzle_date,
+  }));
 
-    return {
-      occurrence_id: r.id,
-      clue_text: clue?.text ?? '',
-      clue_slug: clue?.slug_readable ?? null,
-      answer: r.answer,
-      answer_pretty: r.answer_display,
-      number: r.number,
-      direction: r.direction,
-      source_slug: puzzleSource?.slug ?? source,
-      source_name: puzzleSource?.name ?? null,
-      puzzle_date: puzzleDay?.puzzle_date ?? isoDate,
-    };
-  });
+  console.log(rows[0]);
 
   const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
   const heroKey = `${source}/${isoDate}`;

@@ -118,6 +118,10 @@ async function fetchPrevNextClues(row: OccurrenceRow) {
   };
 }
 
+function first<T>(v: T[] | null | undefined): T | null {
+  return v?.[0] ?? null;
+}
+
 /* ---------------------------------------------------------
    Data fetchers (OBJECTS, not arrays)
 --------------------------------------------------------- */
@@ -181,58 +185,47 @@ async function fetchLatestOccurrenceForSlug(
   slug: string,
 ): Promise<OccurrenceRow | null> {
   const { data, error } = await supabase
-    .from('clue_occurrence')
+    .from('v_search_results_pretty')
     .select(
       `
-      id,
+      occurrence_id,
+      clue_text,
+      clue_slug_readable,
+      answer,
+      answer_pretty,
       number,
       direction,
-      answer,
-      answer_display,
-      puzzle_day!inner (
-        puzzle_date,
-        puzzle_source!inner ( slug, name )
-      ),
-      clue!inner (
-        text,
-        slug_readable
-      )
+      source_slug,
+      source_name,
+      puzzle_date
     `,
     )
-    .eq('clue.slug_readable', slug)
-    // ✅ for nested ordering, the safest option is order by puzzle_day_id then id
-    // (ordering by related table columns is fickle across clients)
-    .order('puzzle_day_id', { ascending: false })
-    .order('id', { ascending: false })
+    .eq('clue_slug_readable', slug)
+    .order('puzzle_date', { ascending: false })
+    .order('occurrence_id', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (error) {
-    console.error('[fetchLatestOccurrenceForSlug] supabase error:', error);
+    console.error(
+      '[fetchLatestOccurrenceForSlug(view)] supabase error:',
+      error,
+    );
     return null;
   }
   if (!data) return null;
 
-  const puzzleDay =
-    (data.puzzle_day as SupabasePuzzleDay[] | null)?.[0] ?? null;
-  const puzzleSource = puzzleDay?.puzzle_source?.[0] ?? null;
-  const clue = (data.clue as SupabaseClue[] | null)?.[0] ?? null;
-
-  if (!puzzleDay?.puzzle_date || !puzzleSource?.slug || !clue?.slug_readable) {
-    return null;
-  }
-
   return {
-    occurrence_id: data.id,
-    clue_text: clue.text,
-    clue_slug: clue.slug_readable,
+    occurrence_id: data.occurrence_id,
+    clue_text: data.clue_text,
+    clue_slug: data.clue_slug_readable,
     answer: data.answer,
-    answer_pretty: data.answer_display,
+    answer_pretty: data.answer_pretty,
     number: data.number,
     direction: data.direction,
-    source_slug: puzzleSource.slug,
-    source_name: puzzleSource.name,
-    puzzle_date: String(puzzleDay.puzzle_date).slice(0, 10),
+    source_slug: data.source_slug,
+    source_name: data.source_name,
+    puzzle_date: String(data.puzzle_date).slice(0, 10),
   };
 }
 

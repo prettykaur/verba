@@ -3,7 +3,6 @@
 'use client';
 
 import { useState } from 'react';
-// import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RevealAnswer } from '@/components/RevealAnswer';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
@@ -85,10 +84,6 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
             // if (r.puzzle_date)
             //   metaBits.push(formatPuzzleDateLong(r.puzzle_date));
 
-            const clueHref = r.clue_slug
-              ? `/clue/${r.clue_slug}?occ=${r.occurrence_id}`
-              : `/clue/${r.occurrence_id}`;
-
             return (
               <li
                 id={anchorId}
@@ -103,7 +98,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                   )}
 
                   <Link
-                    href={clueHref}
+                    href={`/clue/${r.clue_slug}`}
                     className="block no-underline"
                     onClick={() => {
                       track('click_clue_from_daily', {
