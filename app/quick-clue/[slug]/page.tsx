@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { decodeQuickClueSlug } from '@/lib/quickClueSlug';
 import { RevealAnswer } from '@/components/RevealAnswer';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -38,6 +39,61 @@ function formatShortDate(iso: string) {
   const month = d.toLocaleString('en-GB', { month: 'short' });
   const year = d.getFullYear();
   return `${day} ${month} ${year}`;
+}
+
+/* -----------------------------
+   Metadata
+----------------------------- */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  const { phrase, answerLen } = decodeQuickClueSlug(slug);
+
+  if (!phrase) {
+    return {
+      title: 'Crossword Answers | Verba',
+      description: 'Find crossword answers and clue solutions.',
+    };
+  }
+
+  const phraseTitle = titleCase(phrase);
+
+  const title = answerLen
+    ? `${answerLen}-Letter Word for ${phraseTitle} (Crossword Answers)`
+    : `${phraseTitle} – Crossword Answers`;
+
+  const description = answerLen
+    ? `Find ${answerLen}-letter crossword answers for the clue "${phrase}". Includes frequency data and recent puzzle appearances.`
+    : `Find possible crossword answers for the clue "${phrase}", based on historical puzzle data.`;
+
+  const canonical = `https://tryverba.com/quick-clue/${encodeURIComponent(
+    slug,
+  )}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: 'article',
+      siteName: 'Verba',
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+    },
+  };
 }
 
 /* -----------------------------
