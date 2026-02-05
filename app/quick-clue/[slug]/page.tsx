@@ -208,7 +208,10 @@ export default async function QuickCluePage({ params }: PageProps) {
         existing.lastSeen = row.puzzle_date;
       }
 
-      if (existing.examples.length < 3) {
+      if (
+        existing.examples.length < 3 &&
+        !existing.examples.includes(row.clue_text)
+      ) {
         existing.examples.push(row.clue_text);
       }
     }
