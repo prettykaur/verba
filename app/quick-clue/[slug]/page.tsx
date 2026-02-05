@@ -1,4 +1,5 @@
 // app/quick-clue/[slug]/page.tsx
+
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { decodeQuickClueSlug } from '@/lib/quickClueSlug';
@@ -32,15 +33,16 @@ function titleCase(str: string) {
 
 function formatShortDate(iso: string) {
   if (!iso) return '';
-
   const d = new Date(iso);
-
   const day = String(d.getDate()).padStart(2, '0');
   const month = d.toLocaleString('en-GB', { month: 'short' });
   const year = d.getFullYear();
-
   return `${day} ${month} ${year}`;
 }
+
+/* -----------------------------
+   Page
+----------------------------- */
 
 export default async function QuickCluePage({ params }: PageProps) {
   const { slug } = await params;
@@ -56,8 +58,7 @@ export default async function QuickCluePage({ params }: PageProps) {
   }
 
   /* -----------------------------
-     2️⃣ (Soft) page lookup
-     — DO NOT gate rendering
+     2️⃣ Soft page lookup (non-blocking)
   ----------------------------- */
 
   await supabase
@@ -65,10 +66,11 @@ export default async function QuickCluePage({ params }: PageProps) {
     .select('slug')
     .eq('slug', slug)
     .eq('is_live', true)
-    .maybeSingle(); // informational only for now
+    .maybeSingle();
 
   /* -----------------------------
      3️⃣ Fetch matching clues
+     (NO joins, view-only, safe for anon)
   ----------------------------- */
 
   const tokens = phraseToTokens(phrase);
@@ -77,11 +79,15 @@ export default async function QuickCluePage({ params }: PageProps) {
     .from('v_search_results_pretty')
     .select(
       `
-      answer_pretty,
-      answer_len,
-      puzzle_date,
-      clue_text
-    `,
+        occurrence_id,
+        clue_slug_readable,
+        clue_text,
+        answer_pretty,
+        answer_len,
+        puzzle_date,
+        source_name,
+        direction
+      `,
     )
     .order('puzzle_date', { ascending: false })
     .limit(400);
@@ -107,6 +113,10 @@ export default async function QuickCluePage({ params }: PageProps) {
     firstSeen: string;
     lastSeen: string;
     examples: string[];
+    primaryOccurrenceId: number;
+    primaryClueSlug: string;
+    sourceName?: string;
+    direction?: 'across' | 'down' | null;
   };
 
   const map = new Map<string, AnswerAgg>();
@@ -127,15 +137,21 @@ export default async function QuickCluePage({ params }: PageProps) {
         firstSeen: row.puzzle_date,
         lastSeen: row.puzzle_date,
         examples: [row.clue_text],
+        primaryOccurrenceId: row.occurrence_id,
+        primaryClueSlug: row.clue_slug_readable,
+        sourceName: row.source_name ?? undefined,
+        direction: row.direction ?? null,
       });
     } else {
       existing.count += 1;
-      if (row.puzzle_date > existing.firstSeen) {
+
+      if (row.puzzle_date < existing.firstSeen) {
         existing.firstSeen = row.puzzle_date;
       }
       if (row.puzzle_date > existing.lastSeen) {
         existing.lastSeen = row.puzzle_date;
       }
+
       if (existing.examples.length < 3) {
         existing.examples.push(row.clue_text);
       }
@@ -143,15 +159,11 @@ export default async function QuickCluePage({ params }: PageProps) {
   }
 
   /* -----------------------------
-   5️⃣ Thresholds (relaxed)
------------------------------ */
+     5️⃣ Rank & trim
+  ----------------------------- */
 
   let answers = Array.from(map.values());
 
-  // Allow single-answer pages for long-tail clues
-  answers = answers.filter((a) => a.count >= 1);
-
-  // sort: frequency → recency
   answers.sort((a, b) => {
     if (b.count !== a.count) return b.count - a.count;
     return b.lastSeen.localeCompare(a.lastSeen);
@@ -164,6 +176,65 @@ export default async function QuickCluePage({ params }: PageProps) {
   }
 
   /* -----------------------------
+     FAQSchema
+  ----------------------------- */
+
+  const topAnswers = answers.slice(0, 3).map((a) => a.answer);
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `What are the possible crossword answers for "${phrase}"?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Some possible crossword answers for "${phrase}" include: ${topAnswers.join(
+            ', ',
+          )}.`,
+        },
+      },
+      ...(answerLen
+        ? [
+            {
+              '@type': 'Question',
+              name: `How many letters is the answer to "${phrase}"?`,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: `The answer is ${answerLen} letters long.`,
+              },
+            },
+          ]
+        : []),
+      {
+        '@type': 'Question',
+        name: `What is the most common crossword answer for "${phrase}"?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `The most common answer is "${answers[0].answer}", which has appeared ${answers[0].count} ${
+            answers[0].count === 1 ? 'time' : 'times'
+          }.`,
+        },
+      },
+    ],
+  };
+
+  /* -----------------------------
+     Compute token + URLs
+  ----------------------------- */
+
+  const tokensForLinks = phraseToTokens(phrase);
+  const primaryToken =
+    tokensForLinks.sort((a, b) => b.length - a.length)[0] ?? null;
+
+  const letterSearchHref = answerLen ? `/search?len=${answerLen}` : null;
+
+  const tokenSearchHref = primaryToken
+    ? `/search?q=${encodeURIComponent(primaryToken)}`
+    : null;
+
+  /* -----------------------------
      6️⃣ Render
   ----------------------------- */
 
@@ -171,7 +242,9 @@ export default async function QuickCluePage({ params }: PageProps) {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">
         {answerLen
-          ? `${answerLen}-Letter Word for ${titleCase(phrase)} (Crossword Answers)`
+          ? `${answerLen}-Letter Word for ${titleCase(
+              phrase,
+            )} (Crossword Answers)`
           : `${titleCase(phrase)} – Crossword Answers`}
       </h1>
 
@@ -186,45 +259,140 @@ export default async function QuickCluePage({ params }: PageProps) {
       <section className="rounded-xl border bg-white p-4">
         <h2 className="text-sm font-semibold">Possible answers</h2>
 
+        <p className="mt-1 space-y-2 text-xs text-slate-500">
+          Showing <strong>{answers.length}</strong> crossword answer
+          {answers.length === 1 ? '' : 's'} for <strong>“{phrase}”</strong>
+          {answerLen ? ` (${answerLen} letters)` : ''}
+        </p>
+
         <ul className="mt-3 space-y-3">
-          {answers.map((a) => (
-            <li
-              key={a.answer}
-              className="rounded-lg border bg-slate-50 p-3 text-sm"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <RevealAnswer
-                  answer={a.answer}
-                  size="md"
-                  eventProps={{
-                    surface: 'quick_clue',
-                    clue_phrase: phrase,
-                    answer_len: a.answer.replace(/[^A-Za-z]/g, '').length,
-                  }}
-                />
+          {answers.map((a) => {
+            const letterCount = a.answer.replace(/[^A-Za-z]/g, '').length;
 
-                <span className="shrink-0 text-xs text-slate-500">
-                  Seen {a.count} times
-                </span>
-              </div>
+            return (
+              <li
+                key={a.answer}
+                className="space-y-2 rounded-lg border bg-slate-50 p-3 text-sm"
+              >
+                {/* Top row */}
+                <div className="flex items-start justify-between gap-3">
+                  <RevealAnswer
+                    answer={a.answer}
+                    size="md"
+                    eventProps={{
+                      surface: 'quick_clue',
+                      clue_phrase: phrase,
+                      answer_len: letterCount,
+                    }}
+                  />
 
-              <div className="mt-1 text-xs text-slate-500">
-                {a.answer.replace(/[^A-Za-z]/g, '').length} letters · First seen{' '}
-                {formatShortDate(a.firstSeen)} · Last seen{' '}
-                {formatShortDate(a.lastSeen)}
-              </div>
+                  <span className="mt-0.5 shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+                    Seen {a.count} {a.count === 1 ? 'time' : 'times'}
+                  </span>
+                </div>
 
-              {a.examples.length > 0 && (
-                <ul className="mt-2 list-disc pl-4 text-xs text-slate-600">
-                  {a.examples.map((ex, i) => (
-                    <li key={i}>{ex}</li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
+                {/* Metadata */}
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+                  <span>
+                    {letterCount} letter{letterCount === 1 ? '' : 's'}
+                  </span>
+
+                  {a.direction && (
+                    <>
+                      <span aria-hidden className="opacity-60">
+                        •
+                      </span>
+                      <span className="capitalize">{a.direction}</span>
+                    </>
+                  )}
+
+                  <span aria-hidden className="opacity-60">
+                    •
+                  </span>
+
+                  {a.sourceName && (
+                    <a
+                      href={`/answers/${encodeURIComponent(a.sourceName.toLowerCase().replace(/\s+/g, '-'))}`}
+                      className="verba-link text-verba-blue"
+                    >
+                      {a.sourceName}
+                    </a>
+                  )}
+
+                  <span aria-hidden className="opacity-60">
+                    •
+                  </span>
+
+                  <span>Last seen {formatShortDate(a.lastSeen)}</span>
+                </div>
+
+                {/* Answer actions */}
+                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-600">
+                  <a
+                    href={`/search?q=${encodeURIComponent(a.answer)}`}
+                    className="verba-link text-verba-blue"
+                  >
+                    Search
+                  </a>
+
+                  <span aria-hidden>·</span>
+
+                  {/* ✅ CANONICAL, SAFE LINK */}
+                  <a
+                    href={`/clue/${encodeURIComponent(a.primaryClueSlug)}?occ=${a.primaryOccurrenceId}`}
+                    className="verba-link text-verba-blue"
+                  >
+                    View clue
+                  </a>
+                </div>
+
+                {/* Example clues */}
+                {a.examples.length > 0 && (
+                  <div className="mt-2 space-y-2 rounded-md bg-white/60 p-2 text-xs text-slate-600">
+                    <span className="font-medium text-slate-700">
+                      Example clues:
+                    </span>
+                    <ul className="mt-1 list-disc pl-4">
+                      {a.examples.map((ex, i) => (
+                        <li key={i}>{ex}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
+
+      <section className="rounded-xl border bg-slate-50 p-4 text-sm text-slate-600">
+        <h2 className="font-medium text-slate-800">
+          Explore more crossword answers
+        </h2>
+
+        <ul className="mt-2 list-disc space-y-1 pl-4">
+          {letterSearchHref && (
+            <li>
+              <a href={letterSearchHref} className="verba-link text-verba-blue">
+                Looking for another {answerLen}-letter crossword answer?
+              </a>
+            </li>
+          )}
+
+          {tokenSearchHref && (
+            <li>
+              <a href={tokenSearchHref} className="verba-link text-verba-blue">
+                Browse all crossword clues containing “{primaryToken}”
+              </a>
+            </li>
+          )}
+        </ul>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     </div>
   );
 }
