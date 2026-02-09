@@ -27,6 +27,9 @@ export function Footer() {
           <Link href="/contact" className="verba-link">
             Contact
           </Link>
+          <Link href="/sitemap" className="verba-link">
+            Sitemap
+          </Link>
         </div>
         <p className="mt-3">© {new Date().getFullYear()} Verba</p>
       </div>
