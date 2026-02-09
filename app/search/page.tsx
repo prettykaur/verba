@@ -5,6 +5,7 @@ import { SearchHint } from '@/components/SearchHint';
 import { SearchResults } from '@/components/SearchResults.client';
 import { TopSearches } from '@/components/TopSearches';
 import { PopularClues } from '@/components/PopularClues';
+import type { Metadata } from 'next';
 
 type Row = {
   occurrenceId: number;
@@ -17,6 +18,13 @@ type Row = {
   number?: number | null;
   direction?: 'across' | 'down' | null;
   confidence?: number | null;
+};
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 function buildBaseUrl(h: Headers): string {
