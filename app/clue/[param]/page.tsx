@@ -243,6 +243,7 @@ async function fetchRelatedClues(
       `
       occurrence_id,
       clue_text,
+      clue_slug_readable,
       answer,
       answer_pretty,
       number,
@@ -265,6 +266,7 @@ async function fetchRelatedClues(
     (r: {
       occurrence_id: number;
       clue_text: string;
+      clue_slug_readable: string;
       answer: string | null;
       answer_pretty: string | null;
       number: number | null;
@@ -275,7 +277,7 @@ async function fetchRelatedClues(
     }) => ({
       occurrence_id: r.occurrence_id,
       clue_text: r.clue_text,
-      clue_slug: current.clue_slug,
+      clue_slug: r.clue_slug_readable,
       answer: r.answer,
       answer_pretty: r.answer_pretty,
       number: r.number,

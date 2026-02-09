@@ -9,6 +9,7 @@ import { track } from '@/lib/analytics';
 type Row = {
   occurrence_id: number;
   clue_text: string;
+  clue_slug: string;
   answer: string | null;
   answer_pretty: string | null;
   number: number | null;
@@ -136,7 +137,7 @@ export function RelatedCluesList({
                     <div className="min-w-0 flex-1">
                       {/* Clue */}
                       <Link
-                        href={`/clue/${r.occurrence_id}`}
+                        href={`/clue/${r.clue_slug}?occ=${r.occurrence_id}`}
                         className="block font-medium leading-snug text-slate-900 hover:underline"
                         onClick={() => {
                           track('click_related_clue', {
