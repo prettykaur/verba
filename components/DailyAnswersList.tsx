@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { RevealAnswer } from '@/components/RevealAnswer';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
+import { encodeQuickClueSlug } from '@/lib/quickClueSlug';
 
 type Row = {
   occurrence_id: number;
@@ -78,6 +79,18 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                 ? `${letters.length} letter${letters.length === 1 ? '' : 's'}`
                 : '';
 
+            // Quick-clue link (safe, canonical)
+            const letterCount = letters.length;
+
+            const quickClueSlug =
+              letterCount > 0
+                ? encodeQuickClueSlug(r.clue_text, letterCount)
+                : null;
+
+            const quickClueHref = quickClueSlug
+              ? `/quick-clue/${encodeURIComponent(quickClueSlug)}`
+              : null;
+
             const metaBits: string[] = [];
             if (directionLabel) metaBits.push(directionLabel);
             if (lettersLabel) metaBits.push(lettersLabel);
@@ -119,7 +132,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                   </Link>
                 </div>
 
-                <div className="sm:self-end">
+                <div className="space-y-1 sm:self-end">
                   <RevealAnswer
                     answer={displayAnswer}
                     size="sm"
@@ -134,6 +147,19 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                       number: r.number ?? 0,
                     }}
                   />
+
+                  {quickClueHref && (
+                    <div className="text-[11px] text-slate-500">
+                      Looking for a <strong>{letterCount}-letter word</strong>{' '}
+                      for <strong>“{r.clue_text}”</strong>?{' '}
+                      <Link
+                        href={quickClueHref}
+                        className="verba-link text-verba-blue"
+                      >
+                        Quick answers →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </li>
             );
