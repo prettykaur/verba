@@ -512,11 +512,14 @@ export default async function CluePage({ params, searchParams }: PageProps) {
 
         {typeof seenInCount === 'number' && seenInCount > 0 && (
           <div className="mt-3 text-xs text-slate-500">
-            Answer appears in{' '}
-            <strong className="font-medium text-slate-700">
-              {seenInCount}
-            </strong>{' '}
-            other puzzle{seenInCount === 1 ? '' : 's'}
+            <Link
+              href={`/search?q=${encodeURIComponent(displayAnswer)}`}
+              className="verba-link text-verba-blue"
+            >
+              Answer appears in{' '}
+              <strong className="font-medium">{seenInCount}</strong> other
+              puzzle{seenInCount === 1 ? '' : 's'}
+            </Link>
           </div>
         )}
 
