@@ -10,6 +10,7 @@ import { track } from '@/lib/analytics';
 export function ResultItem({
   occurrenceId,
   clue,
+  clueSlug,
   answer,
   source,
   sourceSlug,
@@ -21,6 +22,7 @@ export function ResultItem({
 }: {
   occurrenceId: number;
   clue: string;
+  clueSlug: string;
   answer: string;
   source?: string;
   sourceSlug?: string;
@@ -64,16 +66,9 @@ export function ResultItem({
         }`
       : undefined;
 
-  const clueHref =
-    sourceSlug && clue
-      ? `/clue/${encodeURIComponent(
-          clue
-            .toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, ''),
-        )}?occ=${occurrenceId}`
-      : `/clue/${encodeURIComponent(String(occurrenceId))}`;
+  const clueHref = clueSlug
+    ? `/clue/${encodeURIComponent(clueSlug)}?occ=${occurrenceId}`
+    : `/clue?occ=${occurrenceId}`;
 
   const isSeed = slug === 'seed';
 

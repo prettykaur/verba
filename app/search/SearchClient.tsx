@@ -19,6 +19,7 @@ type Row = {
   occurrenceId: number;
   id: number | string;
   clue: string;
+  clueSlug: string;
   answer: string;
   source: string;
   sourceSlug?: string | null;
@@ -191,6 +192,7 @@ export default function SearchClient({
                 key={r.id}
                 occurrenceId={r.occurrenceId}
                 clue={r.clue}
+                clueSlug={r.clueSlug}
                 answer={r.answer}
                 source={r.source}
                 sourceSlug={r.sourceSlug ?? undefined}

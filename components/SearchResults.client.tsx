@@ -69,6 +69,7 @@ export function SearchResults({
 
             return {
               ...(r as ResultItemData),
+              clueSlug: r.clueSlug ?? '',
               occurrenceId,
             };
           })

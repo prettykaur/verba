@@ -10,6 +10,7 @@ import crypto from 'crypto';
 type DbRow = {
   occurrence_id: number;
   clue_text: string;
+  clue_slug_readable: string | null;
   answer_pretty: string | null;
   puzzle_date: string | null;
   source_name: string | null;
@@ -23,6 +24,7 @@ type ApiResult = {
   id: number;
   occurrenceId: number;
   clue: string;
+  clueSlug: string;
   answer: string;
   source: string;
   sourceSlug: string | null;
@@ -180,6 +182,7 @@ export async function GET(req: Request) {
       `
       occurrence_id,
       clue_text,
+      clue_slug_readable,
       answer_pretty,
       puzzle_date,
       source_name,
@@ -255,6 +258,13 @@ export async function GET(req: Request) {
   // rank & map results
   const ranked = rows
     .map((r) => {
+      if (!r.clue_slug_readable) {
+        console.warn(
+          '[search] missing clue_slug_readable for occurrence',
+          r.occurrence_id,
+        );
+      }
+
       const confidence = isPattern
         ? scorePatternQuery(rawQ, r)
         : scoreTextQuery(rawQ, r);
@@ -263,6 +273,7 @@ export async function GET(req: Request) {
         id: r.occurrence_id,
         occurrenceId: r.occurrence_id,
         clue: r.clue_text,
+        clueSlug: r.clue_slug_readable ?? '',
         answer: r.answer_pretty ?? '',
         source: r.source_name ?? '',
         sourceSlug: r.source_slug,
