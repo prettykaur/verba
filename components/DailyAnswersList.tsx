@@ -101,38 +101,55 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
               <li
                 id={anchorId}
                 key={r.occurrence_id}
-                className="card-hover-marigold card-lift flex scroll-mt-24 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="card-hover-marigold card-lift grid scroll-mt-24 grid-cols-[1fr_auto] gap-4 p-4"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex gap-3">
                   {typeof r.number === 'number' && (
-                    <div className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-[11px] font-semibold text-slate-600">
+                    <div className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 text-[11px] font-semibold text-slate-600">
                       {r.number}
                     </div>
                   )}
 
-                  <Link
-                    href={`/clue/${r.clue_slug}`}
-                    className="block no-underline"
-                    onClick={() => {
-                      track('click_clue_from_daily', {
-                        occurrence_id: r.occurrence_id,
-                        source: r.source_slug,
-                        date: r.puzzle_date,
-                        direction: r.direction ?? '',
-                        number: r.number ?? 0,
-                      });
-                    }}
-                  >
-                    <div className="verba-link text-[0.98rem] font-medium leading-snug text-slate-900">
+                  <div className="min-w-0 space-y-1">
+                    {/* Clue */}
+                    <Link
+                      href={`/clue/${r.clue_slug}`}
+                      className="verba-link block text-[0.98rem] font-medium leading-snug text-slate-900"
+                      onClick={() => {
+                        track('click_clue_from_daily', {
+                          occurrence_id: r.occurrence_id,
+                          source: r.source_slug,
+                          date: r.puzzle_date,
+                          direction: r.direction ?? '',
+                          number: r.number ?? 0,
+                        });
+                      }}
+                    >
                       {r.clue_text}
-                    </div>
-                    <div className="mt-0.5 text-xs text-slate-500">
+                    </Link>
+
+                    {/* Meta */}
+                    <div className="text-xs text-slate-500">
                       {metaBits.join(' · ')}
                     </div>
-                  </Link>
+
+                    {/* Quick clue helper */}
+                    {quickClueHref && (
+                      <div className="text-[11px] text-slate-500">
+                        Looking for a <strong>{letterCount}-letter word</strong>
+                        ?{' '}
+                        <Link
+                          href={quickClueHref}
+                          className="verba-link text-verba-blue"
+                        >
+                          Quick answers →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-1 sm:self-end">
+                <div className="space-y-1 sm:self-center">
                   <RevealAnswer
                     answer={displayAnswer}
                     size="sm"
@@ -147,19 +164,6 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                       number: r.number ?? 0,
                     }}
                   />
-
-                  {quickClueHref && (
-                    <div className="text-[11px] text-slate-500">
-                      Looking for a <strong>{letterCount}-letter word</strong>{' '}
-                      for <strong>“{r.clue_text}”</strong>?{' '}
-                      <Link
-                        href={quickClueHref}
-                        className="verba-link text-verba-blue"
-                      >
-                        Quick answers →
-                      </Link>
-                    </div>
-                  )}
                 </div>
               </li>
             );
