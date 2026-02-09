@@ -24,11 +24,8 @@ type Row = {
   puzzle_date: string | null;
 };
 
-type FreqRow = {
-  source_slug: string | null;
-  puzzle_date: string | null;
-  answer: string | null;
-  answer_pretty: string | null;
+type RelatedRow = Omit<Row, 'clue_slug'> & {
+  clue_slug: string;
 };
 
 type PageParams = { params: Promise<{ id: string }> };
@@ -210,7 +207,7 @@ export default async function CluePage({ params }: PageParams) {
   /* Related clues + frequency logic (unchanged)                         */
   /* ------------------------------------------------------------------ */
 
-  let related: Row[] = [];
+  let related: RelatedRow[] = [];
 
   if (cleanedCurrent && displayAnswer !== '—') {
     const baseSelect = `
@@ -248,9 +245,12 @@ export default async function CluePage({ params }: PageParams) {
       new Map(
         merged
           .filter((r) => {
+            if (!r.clue_slug) return false; // ✅ critical
+
             const candidate = cleanAnswer(
               (r.answer_pretty ?? r.answer ?? '').trim(),
             );
+
             return (
               candidate === cleanedCurrent &&
               !(
@@ -259,7 +259,13 @@ export default async function CluePage({ params }: PageParams) {
               )
             );
           })
-          .map((r) => [r.occurrence_id, r]),
+          .map((r) => [
+            r.occurrence_id,
+            {
+              ...r,
+              clue_slug: r.clue_slug!, // safe after filter
+            } as RelatedRow,
+          ]),
       ).values(),
     );
   }
