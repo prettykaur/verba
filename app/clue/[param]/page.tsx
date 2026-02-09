@@ -8,6 +8,7 @@ import { RelatedCluesList } from '@/components/RelatedCluesList.client';
 import { StickyClueSolveBar } from '@/components/StickyClueSolveBar.client';
 import { CluePrevNextNav } from '@/components/CluePrevNextNav.client';
 import { ClueFAQ } from '@/components/ClueFAQ';
+import { encodeQuickClueSlug } from '@/lib/quickClueSlug';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -390,6 +391,14 @@ export default async function CluePage({ params, searchParams }: PageProps) {
   const displayAnswer = (row.answer_pretty ?? row.answer ?? '—').trim();
   const cleaned = cleanAnswer(displayAnswer);
   const letterCount = cleaned.length;
+
+  const quickClueSlug =
+    letterCount > 0 ? encodeQuickClueSlug(row.clue_text, letterCount) : null;
+
+  const quickClueHref = quickClueSlug
+    ? `/quick-clue/${encodeURIComponent(quickClueSlug)}`
+    : null;
+
   const posLabel = positionLabel(row.number, row.direction);
   const displayDate = formatPuzzleDateLong(row.puzzle_date);
 
@@ -558,6 +567,20 @@ export default async function CluePage({ params, searchParams }: PageProps) {
         )}/${encodeURIComponent(row.puzzle_date)}`}
         seenInCount={seenInCount}
       />
+
+      {quickClueHref && (
+        <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+          <p className="text-slate-700">
+            Looking for a <strong>{letterCount}-letter word</strong> for{' '}
+            <strong>“{row.clue_text}”</strong>?
+          </p>
+          <p className="mt-1">
+            <Link href={quickClueHref} className="verba-link text-verba-blue">
+              View quick crossword answers →
+            </Link>
+          </p>
+        </section>
+      )}
 
       {/* Related clues */}
       <RelatedCluesList

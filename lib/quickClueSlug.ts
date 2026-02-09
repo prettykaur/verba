@@ -52,3 +52,19 @@ export function decodeQuickClueSlug(slug: string): {
     answerLen: null,
   };
 }
+
+export function encodeQuickClueSlug(phrase: string, answerLen?: number | null) {
+  const base = phrase
+    .toLowerCase()
+    .trim()
+    // convert punctuation into spaces (NOT deletion)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  if (answerLen && answerLen > 0) {
+    return `${answerLen}-letter-word-for-${base}`;
+  }
+
+  return base;
+}
