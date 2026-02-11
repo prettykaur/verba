@@ -10,6 +10,14 @@ export const revalidate = 3600;
 
 const PAGE_SIZE = 100;
 
+type StatsRow = {
+  answer_key: string;
+  answer_len: number;
+  occurrence_count: number;
+  last_seen: string | null;
+  last_seen_source_slug: string | null;
+};
+
 function parseLengthParam(param: string) {
   if (param === '8-plus') {
     return { type: 'gte' as const, value: 8 };
@@ -75,7 +83,7 @@ export default async function CommonAnswersByLength({
 
   const { data, count } = await query.range(from, to);
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as StatsRow[];
   const total = typeof count === 'number' ? count : null;
   const totalPages = total ? Math.ceil(total / PAGE_SIZE) : null;
 
@@ -124,7 +132,7 @@ export default async function CommonAnswersByLength({
 
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
-          {rows.map((r: any) => {
+          {rows.map((r) => {
             const slug = r.answer_key.toLowerCase();
             const lastSeen = r.last_seen
               ? formatPuzzleDateLong(String(r.last_seen).slice(0, 10))
