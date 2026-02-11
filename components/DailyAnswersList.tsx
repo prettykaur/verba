@@ -65,10 +65,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
                   ? 'Down'
                   : '';
 
-            const anchorId =
-              r.number && r.direction
-                ? `${r.number}-${r.direction.toLowerCase()}`
-                : `clue-${r.occurrence_id}`;
+            const anchorId = `clue-${r.occurrence_id}`;
 
             const displayAnswer = r.answer_pretty ?? r.answer ?? '—';
 

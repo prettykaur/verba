@@ -32,6 +32,14 @@ export function ResultItem({
   confidence?: number | null;
   query?: string;
 }) {
+  console.log('ResultItem:', {
+    occurrenceId,
+    number,
+    direction,
+    sourceSlug,
+    date,
+  });
+
   const positionLabel =
     number && direction
       ? `${number} ${direction === 'across' ? 'Across' : 'Down'}`
@@ -54,16 +62,13 @@ export function ResultItem({
           .replace(/^-+|-+$/g, '')
       : undefined);
 
-  const clueAnchor =
-    number && direction ? `${number}-${direction.toLowerCase()}` : undefined;
+  const clueAnchor = `clue-${occurrenceId}`;
 
   const sourceHref = slug ? `/answers/${encodeURIComponent(slug)}` : undefined;
 
   const dateHref =
     slug && date
-      ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(date)}${
-          clueAnchor ? `#${clueAnchor}` : ''
-        }`
+      ? `/answers/${encodeURIComponent(slug)}/${encodeURIComponent(date)}#${clueAnchor}`
       : undefined;
 
   const clueHref = clueSlug
