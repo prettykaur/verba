@@ -23,6 +23,7 @@ type StatsRow = {
   answer_len: number;
   occurrence_count: number;
   last_seen: string | null;
+  last_seen_source_slug: string | null;
 };
 
 type OccRow = {
@@ -54,7 +55,9 @@ export async function generateMetadata({
   // Pull stats (for title/description)
   const { data } = await supabase
     .from('v_answer_stats')
-    .select('answer_key, answer_len, occurrence_count, last_seen')
+    .select(
+      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
+    )
     .eq('answer_key', key)
     .maybeSingle();
 
@@ -118,7 +121,9 @@ export default async function CommonAnswerPage({ params }: PageProps) {
   // Stats
   const { data: statsData, error: statsErr } = await supabase
     .from('v_answer_stats')
-    .select('answer_key, answer_len, occurrence_count, last_seen')
+    .select(
+      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
+    )
     .eq('answer_key', key)
     .maybeSingle();
 
@@ -129,6 +134,22 @@ export default async function CommonAnswerPage({ params }: PageProps) {
   const lastSeen = stats.last_seen
     ? String(stats.last_seen).slice(0, 10)
     : null;
+
+  // Fetch canonical occurrence_id for last seen puzzle
+  let lastOccurrenceId: number | null = null;
+
+  if (lastSeen && stats.last_seen_source_slug) {
+    const { data: lastOcc } = await supabase
+      .from('v_search_results_pretty')
+      .select('occurrence_id')
+      .eq('answer_key', key)
+      .eq('puzzle_date', lastSeen)
+      .eq('source_slug', stats.last_seen_source_slug)
+      .limit(1)
+      .maybeSingle();
+
+    lastOccurrenceId = lastOcc?.occurrence_id ?? null;
+  }
 
   // Occurrences (recent)
   const { data: occData, error: occErr } = await supabase
@@ -177,7 +198,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
       <header className="grid items-start gap-4 sm:grid-cols-[1fr_auto]">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">
-            {stats.answer_key}
+            {stats.answer_key} - Common Crossword Answer
           </h1>
 
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
@@ -186,18 +207,17 @@ export default async function CommonAnswerPage({ params }: PageProps) {
             <span>
               Seen{' '}
               <strong className="text-slate-900">
-                {stats.occurrence_count.toLocaleString()}
+                {stats.occurrence_count}
               </strong>{' '}
-              times
+              {stats.occurrence_count === 1 ? 'time' : 'times'}
             </span>
 
-            {lastSeen && (
+            {lastSeen && stats.last_seen_source_slug && lastOccurrenceId && (
               <>
                 <span aria-hidden>·</span>
                 <Link
-                  href={`/answers/${encodeURIComponent(
-                    occ[0]?.source_slug ?? 'nyt-mini',
-                  )}/${encodeURIComponent(lastSeen)}`}
+                  href={`/answers/${stats.last_seen_source_slug}/${lastSeen}#clue-${lastOccurrenceId}`}
+                  scroll={false}
                   className="verba-link text-verba-blue"
                 >
                   Last seen {lastSeenLabel}
@@ -205,6 +225,16 @@ export default async function CommonAnswerPage({ params }: PageProps) {
               </>
             )}
           </div>
+
+          {stats.occurrence_count < 3 && (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              <p>
+                This answer appears infrequently in published crossword puzzles.
+                Some answers are rare, puzzle-specific, or regionally used,
+                which means there may not yet be many recorded clues.
+              </p>
+            </div>
+          )}
 
           <div className="pt-3">
             <Link
@@ -287,10 +317,11 @@ export default async function CommonAnswerPage({ params }: PageProps) {
                         <span aria-hidden> · </span>
                         {puzzleHref ? (
                           <Link
-                            href={puzzleHref}
+                            href={`${puzzleHref}#clue-${r.occurrence_id}`}
+                            scroll={false}
                             className="verba-link text-verba-blue"
                           >
-                            {dateLabel}
+                            Last seen {dateLabel}
                           </Link>
                         ) : (
                           dateLabel
@@ -327,7 +358,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
               href={`/search?q=${encodeURIComponent(stats.answer_key)}`}
               className="verba-link text-verba-blue"
             >
-              Search all results for {stats.answer_key} →
+              View all clues that use {stats.answer_key} →
             </Link>
           </li>
           <li>
