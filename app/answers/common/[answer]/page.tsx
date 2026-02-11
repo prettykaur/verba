@@ -104,6 +104,24 @@ export async function generateMetadata({
   };
 }
 
+function generateExplanation(answer: string, len: number) {
+  const vowelCount = answer.replace(/[^AEIOU]/gi, '').length;
+
+  const vowelComment =
+    vowelCount >= 2
+      ? 'Its vowel-heavy structure makes it easy to slot into many grid patterns.'
+      : 'Its letter pattern fits well into a variety of grid structures.';
+
+  const answerLength =
+    len > 3
+      ? ' works well across many different clue styles and puzzle types, from mini puzzles to longer puzzles like the New York Times Crossword.'
+      : ' is especially useful in compact crossword formats such as the New York Times Mini and other daily puzzles.';
+
+  return `${answer} is a ${len}-letter crossword answer that appears regularly in published crossword puzzles. 
+Constructors rely on short, versatile entries like ${answer} to fill tight grid spaces and connect longer theme entries. ${vowelComment} Because it has common letters and a broadly recognizable meaning, 
+${answer} ${answerLength}`;
+}
+
 export default async function CommonAnswerPage({ params }: PageProps) {
   const { answer } = await params;
   const decoded = decodeURIComponent(answer);
@@ -246,6 +264,14 @@ export default async function CommonAnswerPage({ params }: PageProps) {
           </div>
         </div>
       </header>
+
+      <section className="rounded-xl border bg-white p-4 text-sm text-slate-700">
+        <h2 className="mb-2 text-base font-semibold text-slate-900">
+          Why is {stats.answer_key} common in crosswords?
+        </h2>
+
+        <p>{generateExplanation(stats.answer_key, stats.answer_len)}</p>
+      </section>
 
       <hr className="border-slate-200" />
 
