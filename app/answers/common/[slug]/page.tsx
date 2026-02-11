@@ -1,4 +1,4 @@
-// app/answers/common/[answer]/page.tsx
+// app/answers/common/[slug]/page.tsx
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -9,11 +9,13 @@ export const revalidate = 3600;
 
 const BASE_URL = 'https://tryverba.com';
 const OCCURRENCE_LIMIT = 60;
+const INDEX_THRESHOLD = 3;
 
 // Keep URLs lowercase; treat answer as crossword fill (letters only)
 function normalizeToKey(param: string) {
   return (param ?? '').replace(/[^a-zA-Z]/g, '').toUpperCase();
 }
+
 function toLowerSlug(key: string) {
   return key.toLowerCase();
 }
@@ -39,17 +41,23 @@ type OccRow = {
 };
 
 type PageProps = {
-  params: Promise<{ answer: string }>;
+  params: Promise<{ slug: string }>;
 };
+
+/* =========================
+   Metadata
+========================= */
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { answer } = await params;
-  const key = normalizeToKey(decodeURIComponent(answer));
+  const { slug } = await params;
+  const key = normalizeToKey(decodeURIComponent(slug));
 
   if (!key) {
-    return { title: 'Common Crossword Answers | Verba' };
+    return {
+      title: 'Common Crossword Answers | Verba',
+    };
   }
 
   // Pull stats (for title/description)
@@ -64,26 +72,26 @@ export async function generateMetadata({
   if (!data) {
     return {
       title: `${key} — Crossword Answer | Verba`,
-      description: `Crossword answer page for ${key}.`,
       robots: { index: false, follow: true },
     };
   }
 
   const s = data as StatsRow;
-  const slug = toLowerSlug(s.answer_key);
-  const canonical = `${BASE_URL}/answers/common/${encodeURIComponent(slug)}`;
+  const canonical = `${BASE_URL}/answers/common/${encodeURIComponent(
+    toLowerSlug(s.answer_key),
+  )}`;
+
   const lastSeen = s.last_seen
     ? formatPuzzleDateLong(String(s.last_seen).slice(0, 10))
     : null;
 
   const title = `${s.answer_key} — Common Crossword Answer (${s.answer_len} letters) | Verba`;
-  const description = `See where the answer "${s.answer_key}" appears in crosswords. Seen ${s.occurrence_count} time${
-    s.occurrence_count === 1 ? '' : 's'
-  }${lastSeen ? `, last seen ${lastSeen}` : ''}.`;
 
-  // Optional: only index “meaningful” common answers.
-  // Change threshold anytime.
-  const INDEX_THRESHOLD = 3;
+  const description = `See where the answer "${s.answer_key}" appears in crosswords. Seen ${
+    s.occurrence_count
+  } time${s.occurrence_count === 1 ? '' : 's'}${
+    lastSeen ? `, last seen ${lastSeen}` : ''
+  }.`;
 
   return {
     title,
@@ -104,6 +112,10 @@ export async function generateMetadata({
   };
 }
 
+/* =========================
+   Explanation Generator
+========================= */
+
 function generateExplanation(answer: string, len: number) {
   const vowelCount = answer.replace(/[^AEIOU]/gi, '').length;
 
@@ -112,21 +124,23 @@ function generateExplanation(answer: string, len: number) {
       ? 'Its vowel-heavy structure makes it easy to slot into many grid patterns.'
       : 'Its letter pattern fits well into a variety of grid structures.';
 
-  const answerLength =
-    len > 3
-      ? ' works well across many different clue styles and puzzle types, from mini puzzles to longer puzzles like the New York Times Crossword.'
-      : ' is especially useful in compact crossword formats such as the New York Times Mini and other daily puzzles.';
+  const lengthComment =
+    len <= 4
+      ? 'Short entries like this are especially valuable in compact crossword formats such as daily minis.'
+      : 'Medium-length entries like this work across a wide range of crossword formats, from themed puzzles to larger grids.';
 
-  return `${answer} is a ${len}-letter crossword answer that appears regularly in published crossword puzzles. 
-Constructors rely on short, versatile entries like ${answer} to fill tight grid spaces and connect longer theme entries. ${vowelComment} Because it has common letters and a broadly recognizable meaning, 
-${answer} ${answerLength}`;
+  return `${answer} is a ${len}-letter crossword answer that appears regularly in published crossword puzzles. Constructors rely on versatile entries like ${answer} to fill tight grid spaces and connect longer theme answers. ${vowelComment} ${lengthComment}`;
 }
 
-export default async function CommonAnswerPage({ params }: PageProps) {
-  const { answer } = await params;
-  const decoded = decodeURIComponent(answer);
+/* =========================
+   Page
+========================= */
 
-  // Enforce lowercase URL
+export default async function CommonAnswerPage({ params }: PageProps) {
+  const { slug } = await params;
+  const decoded = decodeURIComponent(slug);
+
+  // Enforce lowercase canonical URL
   if (decoded !== decoded.toLowerCase()) {
     permanentRedirect(
       `/answers/common/${encodeURIComponent(decoded.toLowerCase())}`,
@@ -136,7 +150,8 @@ export default async function CommonAnswerPage({ params }: PageProps) {
   const key = normalizeToKey(decoded);
   if (!key) notFound();
 
-  // Stats
+  /* ===== Fetch Stats ===== */
+
   const { data: statsData, error: statsErr } = await supabase
     .from('v_answer_stats')
     .select(
@@ -149,27 +164,15 @@ export default async function CommonAnswerPage({ params }: PageProps) {
   if (!statsData) notFound();
 
   const stats = statsData as StatsRow;
-  const lastSeen = stats.last_seen
+
+  const lastSeenISO = stats.last_seen
     ? String(stats.last_seen).slice(0, 10)
     : null;
 
-  // Fetch canonical occurrence_id for last seen puzzle
-  let lastOccurrenceId: number | null = null;
+  const lastSeenLabel = lastSeenISO ? formatPuzzleDateLong(lastSeenISO) : null;
 
-  if (lastSeen && stats.last_seen_source_slug) {
-    const { data: lastOcc } = await supabase
-      .from('v_search_results_pretty')
-      .select('occurrence_id')
-      .eq('answer_key', key)
-      .eq('puzzle_date', lastSeen)
-      .eq('source_slug', stats.last_seen_source_slug)
-      .limit(1)
-      .maybeSingle();
+  /* ===== Fetch Recent Occurrences ===== */
 
-    lastOccurrenceId = lastOcc?.occurrence_id ?? null;
-  }
-
-  // Occurrences (recent)
   const { data: occData, error: occErr } = await supabase
     .from('v_occurrence_answer_key')
     .select(
@@ -181,8 +184,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
       direction,
       source_slug,
       source_name,
-      puzzle_date,
-      answer_key
+      puzzle_date
     `,
     )
     .eq('answer_key', key)
@@ -191,12 +193,11 @@ export default async function CommonAnswerPage({ params }: PageProps) {
 
   if (occErr) console.error('Supabase @common answer occurrences:', occErr);
 
-  const occ = (occData ?? []) as OccRow[];
-
-  const lastSeenLabel = lastSeen ? formatPuzzleDateLong(lastSeen) : null;
+  const occurrences = (occData ?? []) as OccRow[];
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumb */}
       <nav className="text-xs text-slate-500">
         <Link href="/" className="verba-link text-verba-blue">
           Home
@@ -213,10 +214,11 @@ export default async function CommonAnswerPage({ params }: PageProps) {
         <span>{stats.answer_key}</span>
       </nav>
 
+      {/* Header */}
       <header className="grid items-start gap-4 sm:grid-cols-[1fr_auto]">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">
-            {stats.answer_key} - Common Crossword Answer
+            {stats.answer_key} — Common Crossword Answer
           </h1>
 
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
@@ -229,13 +231,14 @@ export default async function CommonAnswerPage({ params }: PageProps) {
               </strong>{' '}
               {stats.occurrence_count === 1 ? 'time' : 'times'}
             </span>
-
-            {lastSeen && stats.last_seen_source_slug && lastOccurrenceId && (
+            {/* {stats.answer_len} letters · Seen{' '}
+          <strong>{stats.occurrence_count}</strong>{' '}
+          {stats.occurrence_count === 1 ? 'time' : 'times'} */}
+            {lastSeenLabel && stats.last_seen_source_slug && (
               <>
                 <span aria-hidden>·</span>
                 <Link
-                  href={`/answers/${stats.last_seen_source_slug}/${lastSeen}#clue-${lastOccurrenceId}`}
-                  scroll={false}
+                  href={`/answers/${stats.last_seen_source_slug}/${lastSeenISO}`}
                   className="verba-link text-verba-blue"
                 >
                   Last seen {lastSeenLabel}
@@ -256,7 +259,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
 
           <div className="pt-3">
             <Link
-              href={`/answers/common?len=${stats.answer_len}`}
+              href={`/answers/common/${stats.answer_len}-letter`}
               className="verba-link text-sm text-verba-blue"
             >
               Browse more {stats.answer_len}-letter answers →
@@ -265,16 +268,17 @@ export default async function CommonAnswerPage({ params }: PageProps) {
         </div>
       </header>
 
+      {/* Explanation */}
       <section className="rounded-xl border bg-white p-4 text-sm text-slate-700">
         <h2 className="mb-2 text-base font-semibold text-slate-900">
           Why is {stats.answer_key} common in crosswords?
         </h2>
-
         <p>{generateExplanation(stats.answer_key, stats.answer_len)}</p>
       </section>
 
       <hr className="border-slate-200" />
 
+      {/* Recent Appearances */}
       <section className="rounded-xl border bg-white">
         <div className="px-4 py-4">
           <h2 className="text-base font-semibold text-slate-900">
@@ -289,11 +293,13 @@ export default async function CommonAnswerPage({ params }: PageProps) {
         <hr className="border-slate-200" />
 
         <ul className="divide-y">
-          {occ.map((r) => {
-            const date = r.puzzle_date
+          {occurrences.map((r) => {
+            const dateISO = r.puzzle_date
               ? String(r.puzzle_date).slice(0, 10)
               : null;
-            const dateLabel = date ? formatPuzzleDateLong(date) : null;
+
+            const dateLabel = dateISO ? formatPuzzleDateLong(dateISO) : null;
+
             const directionLabel =
               r.direction === 'across'
                 ? 'Across'
@@ -303,11 +309,11 @@ export default async function CommonAnswerPage({ params }: PageProps) {
 
             const clueHref = r.clue_slug
               ? `/clue/${encodeURIComponent(r.clue_slug)}`
-              : `/clue/${r.occurrence_id}`; // fallback if slug missing
+              : `/clue?occ=${r.occurrence_id}`;
 
             const puzzleHref =
-              r.source_slug && date
-                ? `/answers/${encodeURIComponent(r.source_slug)}/${encodeURIComponent(date)}`
+              r.source_slug && dateISO
+                ? `/answers/${encodeURIComponent(r.source_slug)}/${encodeURIComponent(dateISO)}`
                 : null;
 
             return (
@@ -318,7 +324,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
                 <div className="min-w-0">
                   <Link
                     href={clueHref}
-                    className="verba-link text-[0.98rem] font-medium leading-snug text-slate-900"
+                    className="verba-link font-medium text-slate-900"
                   >
                     {r.clue_text}
                   </Link>
@@ -344,7 +350,6 @@ export default async function CommonAnswerPage({ params }: PageProps) {
                         {puzzleHref ? (
                           <Link
                             href={`${puzzleHref}#clue-${r.occurrence_id}`}
-                            scroll={false}
                             className="verba-link text-verba-blue"
                           >
                             Last seen {dateLabel}
@@ -356,6 +361,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
                     )}
                   </div>
                 </div>
+
                 <div className="flex sm:justify-end">
                   <Link
                     href={clueHref}
@@ -368,14 +374,15 @@ export default async function CommonAnswerPage({ params }: PageProps) {
             );
           })}
 
-          {occ.length === 0 && (
-            <li className="py-6 text-sm text-slate-600">
+          {occurrences.length === 0 && (
+            <li className="p-6 text-sm text-slate-600">
               No appearances found.
             </li>
           )}
         </ul>
       </section>
 
+      {/* Related */}
       <section className="rounded-xl border bg-slate-50 p-4 text-sm">
         <h2 className="font-semibold">Related</h2>
         <ul className="mt-2 space-y-1 text-slate-700">
