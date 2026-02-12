@@ -80,6 +80,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="mt-12 space-y-3">
+        <h2 className="text-brand-ink text-lg font-semibold">
+          Crossword Tools
+        </h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Link href="/answers/common" className="block">
+            <Card className="card-hover-marigold card-lift">
+              <CardBody className="text-center font-medium">
+                Most Common Answers
+                <div className="mt-1 text-xs text-slate-500">
+                  See the answers that appear most often in crosswords.
+                </div>
+              </CardBody>
+            </Card>
+          </Link>
+
+          <Link href="/search" className="block">
+            <Card className="card-hover-marigold card-lift">
+              <CardBody className="text-center font-medium">
+                Crossword Solver
+                <div className="mt-1 text-xs text-slate-500">
+                  Search by clue text or pattern.
+                </div>
+              </CardBody>
+            </Card>
+          </Link>
+        </div>
+      </section>
+
       <section className="mt-12 space-y-4">
         <h2 className="text-brand-ink text-lg font-semibold">How It Works</h2>
         <Card>
