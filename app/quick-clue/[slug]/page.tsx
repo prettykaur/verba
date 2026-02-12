@@ -403,6 +403,16 @@ export default async function QuickCluePage({ params }: PageProps) {
                   >
                     View clue
                   </a>
+
+                  <span aria-hidden>·</span>
+
+                  {/* Link to Common Answer Page */}
+                  <a
+                    href={`/answers/common/${encodeURIComponent(a.answer.toLowerCase())}`}
+                    className="verba-link text-verba-blue"
+                  >
+                    Answer history
+                  </a>
                 </div>
 
                 {/* Example clues */}
