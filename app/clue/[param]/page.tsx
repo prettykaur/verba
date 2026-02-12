@@ -292,8 +292,10 @@ async function fetchRelatedClues(
 
 async function fetchAnswerStats(row: OccurrenceRow) {
   const answer = (row.answer_pretty ?? row.answer ?? '').trim();
+
   if (!answer) {
     return {
+      totalCount: null,
       seenInCount: null,
       otherCluesForSameAnswer: [],
     };
@@ -309,15 +311,18 @@ async function fetchAnswerStats(row: OccurrenceRow) {
   if (error || !data) {
     console.error('[fetchAnswerStats] supabase error:', error);
     return {
+      totalCount: null,
       seenInCount: null,
       otherCluesForSameAnswer: [],
     };
   }
 
-  // Exclude the current occurrence
+  const totalCount = typeof count === 'number' ? count : null;
+
   const filtered = data.filter((r) => r.occurrence_id !== row.occurrence_id);
 
   return {
+    totalCount,
     seenInCount: typeof count === 'number' ? Math.max(count - 1, 0) : null,
     otherCluesForSameAnswer: filtered
       .map((r) => r.clue_text)
@@ -403,7 +408,8 @@ export default async function CluePage({ params, searchParams }: PageProps) {
   const displayDate = formatPuzzleDateLong(row.puzzle_date);
 
   const related = await fetchRelatedClues(row);
-  const { seenInCount, otherCluesForSameAnswer } = await fetchAnswerStats(row);
+  const { totalCount, seenInCount, otherCluesForSameAnswer } =
+    await fetchAnswerStats(row);
 
   const { prev, next } = await fetchPrevNextClues(row);
 
@@ -537,28 +543,19 @@ export default async function CluePage({ params, searchParams }: PageProps) {
           {displayDate ? ` on ${displayDate}` : ''}. The answer{' '}
           <strong>{displayAnswer}</strong> is a {letterCount}-letter entry.
         </p>
-        {cleaned && (
-          <p className="mt-2 text-slate-700">
-            <Link
-              href={`/answers/common/${encodeURIComponent(cleaned.toLowerCase())}`}
-              className="verba-link text-verba-blue"
-            >
-              {displayAnswer}
-            </Link>{' '}
-            appears frequently in crosswords. View its full answer history →
-          </p>
-        )}
-        {/* {occurrenceCount >= 3 && (
-          <div className="mt-4 text-sm text-slate-600">
+        {cleaned && typeof totalCount === 'number' && totalCount >= 3 && (
+          <p className="mt-2 text-sm text-slate-700">
             This answer appears frequently in crosswords.{' '}
             <Link
-              href={`/answers/common/${answer.toLowerCase()}`}
+              href={`/answers/common/${encodeURIComponent(
+                cleaned.toLowerCase(),
+              )}`}
               className="verba-link text-verba-blue"
             >
-              See {answer} answer history →
+              View {displayAnswer} answer history →
             </Link>
-          </div>
-        )} */}
+          </p>
+        )}
       </section>
 
       <CluePrevNextNav prev={prev} next={next} />
