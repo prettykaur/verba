@@ -9,6 +9,7 @@ import { formatPuzzleDateLong } from '@/lib/formatDate';
 export const revalidate = 3600;
 
 const PAGE_SIZE = 100;
+const BASE_URL = 'https://tryverba.com';
 
 type StatsRow = {
   answer_key: string;
@@ -29,10 +30,16 @@ function parseLengthParam(param: string) {
   return { type: 'eq' as const, value: Number(match[1]) };
 }
 
+/* =========================
+   Metadata
+========================= */
+
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ length: string }>;
+  searchParams?: Promise<{ page?: string }>;
 }): Promise<Metadata> {
   const { length } = await params;
   const parsed = parseLengthParam(length);
@@ -41,12 +48,21 @@ export async function generateMetadata({
     return { title: 'Common Crossword Answers | Verba' };
   }
 
+  const sp = (await searchParams) ?? {};
+  const page = Math.max(1, Number(sp.page ?? 1));
+
   const label =
     parsed.type === 'eq' ? `${parsed.value}-Letter` : `${parsed.value}+ Letter`;
+
+  const canonical =
+    page === 1
+      ? `${BASE_URL}/answers/common/length/${length}`
+      : `${BASE_URL}/answers/common/length/${length}?page=${page}`;
 
   return {
     title: `Most Common ${label} Crossword Answers | Verba`,
     description: `Browse the most common ${label.toLowerCase()} crossword answers.`,
+    alternates: { canonical },
   };
 }
 
