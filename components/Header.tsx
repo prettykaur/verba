@@ -54,8 +54,8 @@ export function Header() {
           <Link href="/answers" className="verba-link">
             Answers
           </Link>
-          <Link href="/browse" className="verba-link">
-            Browse
+          <Link href="/answers/common" className="verba-link">
+            Common Answers
           </Link>
           <Link href="/faq" className="verba-link">
             FAQ
@@ -112,11 +112,11 @@ export function Header() {
               Answers
             </Link>
             <Link
-              href="/browse"
+              href="/answers/common"
               className="px-4 py-2 hover:bg-slate-50"
               onClick={() => setOpen(false)}
             >
-              Browse
+              Common Answers
             </Link>
             <Link
               href="/faq"
