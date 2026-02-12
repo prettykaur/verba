@@ -146,6 +146,26 @@ export default async function HtmlSitemapPage() {
       </section>
 
       {/* -----------------------------
+          Browse by Letter
+      ----------------------------- */}
+
+      <section>
+        <h2 className="text-lg font-semibold">Browse by Letter</h2>
+        <ul className="mt-3 grid grid-cols-6 gap-2 text-sm">
+          {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((L) => (
+            <li key={L}>
+              <Link
+                href={`/answers/common/starts/${L}`}
+                className="verba-link text-verba-blue"
+              >
+                {L}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* -----------------------------
           Recent Daily Answers
       ----------------------------- */}
       <section>
