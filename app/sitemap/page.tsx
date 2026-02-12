@@ -12,29 +12,42 @@ export default async function HtmlSitemapPage() {
      Fetch data (lightweight)
   ----------------------------- */
 
-  const [{ data: sources }, { data: daily }, { data: clues }, { data: quick }] =
-    await Promise.all([
-      supabase.from('puzzle_source').select('slug, name').order('name'),
+  const [
+    { data: sources },
+    { data: daily },
+    { data: clues },
+    { data: quick },
+    { data: topAnswers },
+  ] = await Promise.all([
+    supabase.from('puzzle_source').select('slug, name').order('name'),
 
-      supabase
-        .from('v_search_results_pretty')
-        .select('source_slug, puzzle_date')
-        .order('puzzle_date', { ascending: false })
-        .limit(25),
+    supabase
+      .from('v_search_results_pretty')
+      .select('source_slug, puzzle_date')
+      .order('puzzle_date', { ascending: false })
+      .limit(25),
 
-      supabase
-        .from('v_search_results_pretty')
-        .select('clue_slug_readable, clue_text')
-        .order('puzzle_date', { ascending: false })
-        .limit(25),
+    supabase
+      .from('v_search_results_pretty')
+      .select('clue_slug_readable, clue_text')
+      .order('puzzle_date', { ascending: false })
+      .limit(25),
 
-      supabase
-        .from('quick_clue_page')
-        .select('slug, last_seen')
-        .eq('is_live', true)
-        .order('last_seen', { ascending: false })
-        .limit(25),
-    ]);
+    supabase
+      .from('quick_clue_page')
+      .select('slug, last_seen')
+      .eq('is_live', true)
+      .order('last_seen', { ascending: false })
+      .limit(25),
+
+    // 👇 NEW QUERY
+    supabase
+      .from('v_answer_stats')
+      .select('answer_key')
+      .gte('occurrence_count', 5) // threshold
+      .order('occurrence_count', { ascending: false })
+      .limit(10),
+  ]);
 
   /* -----------------------------
      Helpers
@@ -69,6 +82,63 @@ export default async function HtmlSitemapPage() {
                 className="verba-link text-verba-blue"
               >
                 {s.name ?? s.slug}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* -----------------------------
+          Common Crossword Answers
+      ----------------------------- */}
+      <section>
+        <h2 className="text-lg font-semibold">Common Crossword Answers</h2>
+
+        <ul className="mt-3 space-y-1 text-sm">
+          <li>
+            <Link href="/answers/common" className="verba-link text-verba-blue">
+              Most Common Crossword Answers
+            </Link>
+          </li>
+
+          <li className="mt-3">
+            <Link
+              href="/answers/common/length/3-letter"
+              className="verba-link text-verba-blue"
+            >
+              Most Common 3-Letter Answers
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href="/answers/common/length/4-letter"
+              className="verba-link text-verba-blue"
+            >
+              Most Common 4-Letter Answers
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href="/answers/common/length/5-letter"
+              className="verba-link text-verba-blue"
+            >
+              Most Common 5-Letter Answers
+            </Link>
+          </li>
+
+          <li className="pt-4 text-xs uppercase tracking-wide text-slate-500">
+            Top Answers
+          </li>
+
+          {topAnswers?.map((a) => (
+            <li key={a.answer_key}>
+              <Link
+                href={`/answers/common/${a.answer_key.toLowerCase()}`}
+                className="verba-link text-verba-blue"
+              >
+                {a.answer_key}
               </Link>
             </li>
           ))}
