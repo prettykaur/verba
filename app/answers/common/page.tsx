@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { permanentRedirect } from 'next/navigation';
 
 export const revalidate = 3600;
 
@@ -16,7 +17,7 @@ type StatsRow = {
 };
 
 type PageProps = {
-  searchParams?: Promise<{ page?: string }>;
+  searchParams?: Promise<{ page?: string; starts?: string }>;
 };
 
 const BASE_URL = 'https://tryverba.com';
@@ -25,20 +26,33 @@ const PAGE_SIZE = 100;
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams?: Promise<{ page?: string }>;
+  searchParams?: Promise<{ page?: string; starts?: string }>;
 }): Promise<Metadata> {
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, Number(sp.page ?? 1));
+  const starts = sp.starts?.toUpperCase();
 
-  const canonical =
-    page === 1
-      ? `${BASE_URL}/answers/common`
-      : `${BASE_URL}/answers/common?page=${page}`;
+  let canonical = `${BASE_URL}/answers/common`;
+
+  if (starts) {
+    canonical += `?starts=${encodeURIComponent(starts)}`;
+  }
+
+  if (page > 1) {
+    canonical += starts ? `&page=${page}` : `?page=${page}`;
+  }
+
+  const title = starts
+    ? `Common Crossword Answers Starting With "${starts}" | Verba`
+    : `Most Common Crossword Answers | Verba`;
+
+  const description = starts
+    ? `Browse the most common crossword answers starting with the letter "${starts}".`
+    : `Browse the most common crossword answers by frequency and last seen date.`;
 
   return {
-    title: 'Most Common Crossword Answers | Verba',
-    description:
-      'Browse the most common crossword answers by frequency and last seen date.',
+    title,
+    description,
     alternates: {
       canonical,
     },
@@ -52,19 +66,25 @@ function toLowerAnswerSlug(answerKey: string) {
 export default async function CommonAnswersHub({ searchParams }: PageProps) {
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, Number(sp.page ?? 1));
+  const starts = sp.starts?.toUpperCase();
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  const { data, count } = await supabase
+  let query = supabase
     .from('v_answer_stats')
     .select(
       'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
       { count: 'exact' },
     )
     .order('occurrence_count', { ascending: false })
-    .order('last_seen', { ascending: false })
-    .range(from, to);
+    .order('last_seen', { ascending: false });
+
+  if (starts && /^[A-Z]$/.test(starts)) {
+    permanentRedirect(`/answers/common/starts/${starts}`);
+  }
+
+  const { data, count } = await query.range(from, to);
 
   const rows = (data ?? []) as StatsRow[];
   const total = typeof count === 'number' ? count : null;
@@ -91,13 +111,46 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
 
       {/* Header */}
       <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Most Common Crossword Answers</h1>
+        <h1 className="text-2xl font-bold">
+          {starts
+            ? `Common Crossword Answers Starting With "${starts}"`
+            : `Most Common Crossword Answers`}
+        </h1>
         <p className="max-w-3xl text-slate-600">
           Some crossword answers appear far more frequently than others. These
           entries are often short, vowel-heavy words that help constructors fill
           grids smoothly.
         </p>
+        <div className="pt-4 text-sm text-slate-600">
+          Browse by:{' '}
+          <Link href="/answers/common" className="verba-link text-verba-blue">
+            All
+          </Link>
+          {' · '}
+          <Link
+            href="/answers/common/starts/A"
+            className="verba-link text-verba-blue"
+          >
+            Letter
+          </Link>
+          {' · '}
+          <Link
+            href="/answers/common/length/3-letter"
+            className="verba-link text-verba-blue"
+          >
+            Length
+          </Link>
+        </div>
       </header>
+
+      {starts && (
+        <div className="text-sm text-slate-600">
+          Filtering by letter: <strong>{starts}</strong>{' '}
+          <Link href="/answers/common" className="verba-link text-verba-blue">
+            Clear filter →
+          </Link>
+        </div>
+      )}
 
       {/* Length Filters */}
       <section className="flex flex-wrap gap-2">
