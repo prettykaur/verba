@@ -240,7 +240,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
         name: `What is ${stats.answer_key} in crosswords?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${stats.answer_key} is a ${stats.answer_len}-letter crossword answer that appears ${stats.occurrence_count} time${
+          text: `${stats.answer_key} is a ${stats.answer_len}-letter crossword answer that appears ${stats.occurrence_count.toLocaleString()} time${
             stats.occurrence_count === 1 ? '' : 's'
           } in recorded crossword puzzles.`,
         },
