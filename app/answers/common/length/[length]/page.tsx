@@ -3,20 +3,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { getCommonAnswers, PAGE_SIZE } from '@/lib/getCommonAnswers';
 
 export const revalidate = 3600;
 
-const PAGE_SIZE = 100;
 const BASE_URL = 'https://tryverba.com';
 
-type StatsRow = {
-  answer_key: string;
-  answer_len: number;
-  occurrence_count: number;
-  last_seen: string | null;
-  last_seen_source_slug: string | null;
+type PageProps = {
+  params: Promise<{ length: string }>;
+  searchParams?: Promise<{ page?: string }>;
 };
 
 function parseLengthParam(param: string) {
@@ -37,10 +33,7 @@ function parseLengthParam(param: string) {
 export async function generateMetadata({
   params,
   searchParams,
-}: {
-  params: Promise<{ length: string }>;
-  searchParams?: Promise<{ page?: string }>;
-}): Promise<Metadata> {
+}: PageProps): Promise<Metadata> {
   const { length } = await params;
   const parsed = parseLengthParam(length);
 
@@ -66,13 +59,14 @@ export async function generateMetadata({
   };
 }
 
+/* =========================
+   Page
+========================= */
+
 export default async function CommonAnswersByLength({
   params,
   searchParams,
-}: {
-  params: Promise<{ length: string }>;
-  searchParams?: Promise<{ page?: string }>;
-}) {
+}: PageProps) {
   const { length } = await params;
   const parsed = parseLengthParam(length);
   if (!parsed) notFound();
@@ -80,30 +74,26 @@ export default async function CommonAnswersByLength({
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, Number(sp.page ?? 1));
 
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { rows, total } = await getCommonAnswers({
+    length: parsed,
+    page,
+  });
 
-  let query = supabase
-    .from('v_answer_stats')
-    .select(
-      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
-      { count: 'exact' },
-    )
-    .order('occurrence_count', { ascending: false });
-
-  if (parsed.type === 'eq') {
-    query = query.eq('answer_len', parsed.value);
-  } else {
-    query = query.gte('answer_len', parsed.value);
+  if (!total || total < 1) {
+    notFound();
   }
 
-  const { data, count } = await query.range(from, to);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  const rows = (data ?? []) as StatsRow[];
-  const total = typeof count === 'number' ? count : null;
-  const totalPages = total ? Math.ceil(total / PAGE_SIZE) : null;
+  if (page > totalPages) {
+    notFound();
+  }
 
-  if (totalPages && page > totalPages) notFound();
+  const from = (page - 1) * PAGE_SIZE + 1;
+  const to = total ? Math.min(page * PAGE_SIZE, total) : null;
+
+  const lengthLabel =
+    parsed.type === 'eq' ? `${parsed.value}-letter` : `${parsed.value}+ letter`;
 
   return (
     <div className="space-y-6">
@@ -115,40 +105,26 @@ export default async function CommonAnswersByLength({
       </Link>
 
       <h1 className="text-2xl font-bold">
-        Most Common{' '}
-        {parsed.type === 'eq'
-          ? `${parsed.value}-Letter`
-          : `${parsed.value}+ Letter`}{' '}
-        Crossword Answers
+        Most Common {lengthLabel} Crossword Answers
       </h1>
 
       <p className="max-w-3xl text-slate-600">
-        These are the most frequently used{' '}
-        {parsed.type === 'eq'
-          ? `${parsed.value}-letter`
-          : `${parsed.value}+ letter`}{' '}
-        crossword answers across major puzzle sources. Short, versatile entries
-        like these help constructors balance crossword grids.
+        These are the most frequently used {lengthLabel} crossword answers
+        across major puzzle sources.
       </p>
 
-      <hr className="border-slate-200" />
-
-      {total !== null && (
+      {/* RESULT COUNT */}
+      {total && total > 0 && (
         <div className="text-sm text-slate-600">
-          Showing <strong className="text-slate-900">{from + 1}</strong> to{' '}
-          <strong className="text-slate-900">
-            {Math.min(from + PAGE_SIZE, total)}
-          </strong>{' '}
-          of <strong className="text-slate-900">{total}</strong>{' '}
-          {parsed.type === 'eq'
-            ? `${parsed.value}-letter answers`
-            : `${parsed.value}+ letter answers`}
+          Showing <strong>{from}</strong> to <strong>{to}</strong> of{' '}
+          <strong>{total.toLocaleString()}</strong> answers
         </div>
       )}
 
+      {/* RESULTS */}
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
-          {rows.map((r) => {
+          {rows.map((r: any) => {
             const slug = r.answer_key.toLowerCase();
             const lastSeen = r.last_seen
               ? formatPuzzleDateLong(String(r.last_seen).slice(0, 10))
@@ -168,20 +144,10 @@ export default async function CommonAnswersByLength({
                   </Link>
 
                   <div className="mt-1 text-xs text-slate-500">
-                    {r.answer_len} letters · Seen {r.occurrence_count} times
-                    {lastSeen && r.last_seen_source_slug && (
-                      <>
-                        {' · '}
-                        <Link
-                          href={`/answers/${r.last_seen_source_slug}/${String(
-                            r.last_seen,
-                          ).slice(0, 10)}`}
-                          className="verba-link text-verba-blue"
-                        >
-                          Last seen {lastSeen}
-                        </Link>
-                      </>
-                    )}
+                    {r.answer_len} letters · Seen{' '}
+                    {r.occurrence_count.toLocaleString()} time
+                    {r.occurrence_count === 1 ? '' : 's'}
+                    {lastSeen && ` · Last seen ${lastSeen}`}
                   </div>
                 </div>
 
@@ -197,6 +163,7 @@ export default async function CommonAnswersByLength({
         </ul>
       </section>
 
+      {/* PAGINATION */}
       {totalPages && totalPages > 1 && (
         <nav className="flex items-center justify-between text-sm">
           {page > 1 ? (
