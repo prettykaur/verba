@@ -537,6 +537,28 @@ export default async function CluePage({ params, searchParams }: PageProps) {
           {displayDate ? ` on ${displayDate}` : ''}. The answer{' '}
           <strong>{displayAnswer}</strong> is a {letterCount}-letter entry.
         </p>
+        {cleaned && (
+          <p className="mt-2 text-slate-700">
+            <Link
+              href={`/answers/common/${encodeURIComponent(cleaned.toLowerCase())}`}
+              className="verba-link text-verba-blue"
+            >
+              {displayAnswer}
+            </Link>{' '}
+            appears frequently in crosswords. View its full answer history →
+          </p>
+        )}
+        {/* {occurrenceCount >= 3 && (
+          <div className="mt-4 text-sm text-slate-600">
+            This answer appears frequently in crosswords.{' '}
+            <Link
+              href={`/answers/common/${answer.toLowerCase()}`}
+              className="verba-link text-verba-blue"
+            >
+              See {answer} answer history →
+            </Link>
+          </div>
+        )} */}
       </section>
 
       <CluePrevNextNav prev={prev} next={next} />
