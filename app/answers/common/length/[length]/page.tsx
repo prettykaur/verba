@@ -141,7 +141,7 @@ export default async function CommonAnswersByLength({
             return (
               <li
                 key={r.answer_key}
-                className="flex items-center justify-between gap-3 p-4"
+                className="card-lift card-hover-marigold flex items-center justify-between gap-3 p-4"
               >
                 <div>
                   <Link

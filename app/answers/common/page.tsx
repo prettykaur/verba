@@ -135,7 +135,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
             return (
               <li
                 key={`${r.answer_key}-${r.answer_len}`}
-                className="flex items-center justify-between gap-3 p-4"
+                className="card-lift card-hover-marigold flex items-center justify-between gap-3 p-4"
               >
                 <div className="min-w-0">
                   <Link

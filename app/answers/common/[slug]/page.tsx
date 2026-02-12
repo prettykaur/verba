@@ -319,7 +319,7 @@ export default async function CommonAnswerPage({ params }: PageProps) {
             return (
               <li
                 key={r.occurrence_id}
-                className="flex items-center justify-between gap-3 p-4"
+                className="card-lift card-hover-marigold flex items-center justify-between gap-3 p-4"
               >
                 <div className="min-w-0">
                   <Link
