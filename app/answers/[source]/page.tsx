@@ -11,6 +11,9 @@ const QUERY_TIMEOUT_MS = 4000;
 
 const SOURCE_NAMES: Record<string, string> = {
   'nyt-mini': 'NYT Mini',
+  'la-times': 'LA Times',
+  guardian: 'The Guardian',
+  'usa-today': 'USA Today',
   seed: 'Classic Crossword Clues',
 };
 
