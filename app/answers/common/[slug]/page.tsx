@@ -44,6 +44,22 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
+async function getAnswerStats(key: string) {
+  const { data, error } = await supabase
+    .from('v_answer_stats')
+    .select(
+      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
+    )
+    .eq('answer_key', key)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Supabase @common answer stats:', error);
+  }
+
+  return data as StatsRow | null;
+}
+
 /* =========================
    Metadata
 ========================= */
@@ -60,23 +76,15 @@ export async function generateMetadata({
     };
   }
 
-  // Pull stats (for title/description)
-  const { data } = await supabase
-    .from('v_answer_stats')
-    .select(
-      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
-    )
-    .eq('answer_key', key)
-    .maybeSingle();
+  const s = await getAnswerStats(key);
 
-  if (!data) {
+  if (!s) {
     return {
       title: `${key} — Crossword Answer | Verba`,
       robots: { index: false, follow: true },
     };
   }
 
-  const s = data as StatsRow;
   const canonical = `${BASE_URL}/answers/common/${encodeURIComponent(
     toLowerSlug(s.answer_key),
   )}`;
@@ -152,18 +160,8 @@ export default async function CommonAnswerPage({ params }: PageProps) {
 
   /* ===== Fetch Stats ===== */
 
-  const { data: statsData, error: statsErr } = await supabase
-    .from('v_answer_stats')
-    .select(
-      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
-    )
-    .eq('answer_key', key)
-    .maybeSingle();
-
-  if (statsErr) console.error('Supabase @common answer stats:', statsErr);
-  if (!statsData) notFound();
-
-  const stats = statsData as StatsRow;
+  const stats = await getAnswerStats(key);
+  if (!stats) notFound();
 
   const lastSeenISO = stats.last_seen
     ? String(stats.last_seen).slice(0, 10)
@@ -194,6 +192,81 @@ export default async function CommonAnswerPage({ params }: PageProps) {
   if (occErr) console.error('Supabase @common answer occurrences:', occErr);
 
   const occurrences = (occData ?? []) as OccRow[];
+
+  /* ===== Fetch Grouped by Source ===== */
+
+  const { data: sourceCounts, error: sourceErr } = await supabase
+    .from('v_occurrence_answer_key')
+    .select('source_slug, source_name', { count: 'exact' })
+    .eq('answer_key', key);
+
+  if (sourceErr) {
+    console.error('Supabase @common answer source grouping:', sourceErr);
+  }
+
+  // Group manually
+  const sourceMap = new Map<string, { name: string | null; count: number }>();
+
+  (sourceCounts ?? []).forEach((row) => {
+    const slug = row.source_slug;
+    const existing = sourceMap.get(slug);
+
+    if (existing) {
+      existing.count += 1;
+    } else {
+      sourceMap.set(slug, {
+        name: row.source_name,
+        count: 1,
+      });
+    }
+  });
+
+  const groupedSources = Array.from(sourceMap.entries())
+    .map(([slug, val]) => ({
+      slug,
+      name: val.name,
+      count: val.count,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  /* ===== FAQ Schema ===== */
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `What is ${stats.answer_key} in crosswords?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${stats.answer_key} is a ${stats.answer_len}-letter crossword answer that appears ${stats.occurrence_count} time${
+            stats.occurrence_count === 1 ? '' : 's'
+          } in recorded crossword puzzles.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How many letters is ${stats.answer_key}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${stats.answer_key} contains ${stats.answer_len} letters.`,
+        },
+      },
+      ...(lastSeenLabel
+        ? [
+            {
+              '@type': 'Question',
+              name: `When was ${stats.answer_key} last seen in a crossword?`,
+              acceptedAnswer: {
+                '@type': 'Answer',
+                text: `${stats.answer_key} was last seen on ${lastSeenLabel}.`,
+              },
+            },
+          ]
+        : []),
+    ],
+  };
 
   return (
     <div className="space-y-6">
@@ -382,13 +455,40 @@ export default async function CommonAnswerPage({ params }: PageProps) {
         </ul>
       </section>
 
+      {/* Seen in puzzles */}
+      {groupedSources.length > 0 && (
+        <section className="rounded-xl border bg-white p-4 text-sm">
+          <h2 className="mb-2 text-base font-semibold text-slate-900">
+            Seen in puzzles
+          </h2>
+
+          <ul className="space-y-2 text-slate-700">
+            {groupedSources.map((src) => (
+              <li key={src.slug} className="flex justify-between">
+                <Link
+                  href={`/answers/${encodeURIComponent(
+                    src.slug,
+                  )}?answer=${encodeURIComponent(stats.answer_key.toLowerCase())}`}
+                  className="verba-link text-verba-blue"
+                >
+                  {src.name ?? src.slug}
+                </Link>
+                <span className="text-slate-500">
+                  {src.count} time{src.count === 1 ? '' : 's'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Related */}
       <section className="rounded-xl border bg-slate-50 p-4 text-sm">
         <h2 className="font-semibold">Related</h2>
         <ul className="mt-2 space-y-1 text-slate-700">
           <li>
             <Link
-              href={`/search?q=${encodeURIComponent(stats.answer_key)}`}
+              href={`/search?q=${encodeURIComponent(stats.answer_key.toLowerCase())}`}
               className="verba-link text-verba-blue"
             >
               View all clues that use {stats.answer_key} →
@@ -401,6 +501,11 @@ export default async function CommonAnswerPage({ params }: PageProps) {
           </li>
         </ul>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     </div>
   );
 }
