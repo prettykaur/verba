@@ -22,14 +22,28 @@ type PageProps = {
 const BASE_URL = 'https://tryverba.com';
 const PAGE_SIZE = 100;
 
-export const metadata: Metadata = {
-  title: 'Most Common Crossword Answers | Verba',
-  description:
-    'Browse the most common crossword answers by frequency and last seen date.',
-  alternates: {
-    canonical: `${BASE_URL}/answers/common`,
-  },
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<{ page?: string }>;
+}): Promise<Metadata> {
+  const sp = (await searchParams) ?? {};
+  const page = Math.max(1, Number(sp.page ?? 1));
+
+  const canonical =
+    page === 1
+      ? `${BASE_URL}/answers/common`
+      : `${BASE_URL}/answers/common?page=${page}`;
+
+  return {
+    title: 'Most Common Crossword Answers | Verba',
+    description:
+      'Browse the most common crossword answers by frequency and last seen date.',
+    alternates: {
+      canonical,
+    },
+  };
+}
 
 function toLowerAnswerSlug(answerKey: string) {
   return answerKey.toLowerCase();
