@@ -394,6 +394,29 @@ export default async function SourceIndexPage({
           puzzles.
         </p>
       </section>
+      <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+        <h2 className="font-semibold">Most Common Answers</h2>
+        <p className="mt-1 text-slate-700">
+          Curious which answers appear most often in crosswords?
+        </p>
+
+        <ul className="mt-2 space-y-1">
+          <li>
+            <Link href="/answers/common" className="verba-link text-verba-blue">
+              View most common crossword answers →
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href="/answers/common/length/3-letter"
+              className="verba-link text-verba-blue"
+            >
+              Most common 3-letter answers →
+            </Link>
+          </li>
+        </ul>
+      </section>
       <div className="mt-6 space-y-8">
         {visibleMonths.map((monthKey) => {
           const monthDates = groupedByMonth[monthKey];
