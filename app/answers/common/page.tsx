@@ -89,7 +89,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
       <section className="flex flex-wrap gap-2">
         <Link
           href="/answers/common"
-          className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-900"
+          className="btn-press btn-marigold-hover rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-900"
         >
           All
         </Link>
@@ -98,7 +98,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
           <Link
             key={n}
             href={`/answers/common/length/${n}-letter`}
-            className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-verba-blue"
+            className="btn-press btn-marigold-hover rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-verba-blue"
           >
             {n}-letter
           </Link>
@@ -106,7 +106,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
 
         <Link
           href="/answers/common/length/8-plus"
-          className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-verba-blue"
+          className="btn-press btn-marigold-hover rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-verba-blue"
         >
           8+ letters
         </Link>
