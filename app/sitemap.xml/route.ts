@@ -16,6 +16,10 @@ export async function GET() {
   </sitemap>
 
   <sitemap>
+    <loc>${BASE_URL}/sitemap/common-answers.xml</loc>
+  </sitemap>
+
+  <sitemap>
     <loc>${BASE_URL}/sitemap/quick-clues.xml</loc>
   </sitemap>
 
