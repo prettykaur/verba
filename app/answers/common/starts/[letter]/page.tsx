@@ -75,34 +75,65 @@ export default async function CommonByLetterPage({
         frequency.
       </p>
 
-      <div className="pt-4 text-sm text-slate-600">
-        Refine:{' '}
-        <Link href="/answers/common" className="verba-link text-verba-blue">
-          All Answers
-        </Link>
-        {lengths.map((n) => (
-          <span key={n}>
-            {' · '}
+      {/* Alphabet Strip */}
+      <section className="flex flex-wrap gap-2 pt-2">
+        {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((ltr) => {
+          const active = ltr === L;
+
+          return (
             <Link
+              key={ltr}
+              href={`/answers/common/starts/${ltr}`}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                active
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 text-verba-blue hover:bg-slate-50'
+              }`}
+            >
+              {ltr}
+            </Link>
+          );
+        })}
+      </section>
+
+      {/* Refine by Length */}
+      <section className="space-y-2 pt-4">
+        <div className="text-sm text-slate-600">Refine:</div>
+
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/answers/common/starts/${L}`}
+            className="btn-press btn-marigold-hover rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-900"
+          >
+            All Answers
+          </Link>
+
+          {lengths.map((n) => (
+            <Link
+              key={n}
               href={`/answers/common/starts/${L}/length/${n}-letter`}
-              className="verba-link text-verba-blue"
+              className="btn-press btn-marigold-hover rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-verba-blue"
             >
               {n}-letter
             </Link>
-          </span>
-        ))}
-        {' · '}
-        <Link
-          href={`/answers/common/starts/${L}/length/8-plus`}
-          className="verba-link text-verba-blue"
-        >
-          8+ letters
-        </Link>
-      </div>
+          ))}
+
+          <Link
+            href={`/answers/common/starts/${L}/length/8-plus`}
+            className="btn-press btn-marigold-hover rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-verba-blue"
+          >
+            8+ letters
+          </Link>
+        </div>
+      </section>
+
       {total !== null && (
         <div className="text-sm text-slate-600">
-          Showing <strong>{from}</strong> to <strong>{to}</strong> of{' '}
-          <strong>{total}</strong> answers
+          Showing{' '}
+          <strong className="text-slate-900">{from.toLocaleString()}</strong> to{' '}
+          <strong className="text-slate-900">{to?.toLocaleString()}</strong> of{' '}
+          <strong className="text-slate-900">{total.toLocaleString()}</strong>{' '}
+          answers
         </div>
       )}
       <section className="rounded-xl border bg-white">
@@ -116,7 +147,7 @@ export default async function CommonByLetterPage({
             return (
               <li
                 key={r.answer_key}
-                className="flex items-center justify-between p-4"
+                className="card-lift card-hover-marigold flex items-center justify-between gap-3 p-4"
               >
                 <div>
                   <Link

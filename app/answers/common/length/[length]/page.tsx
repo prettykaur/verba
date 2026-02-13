@@ -95,6 +95,8 @@ export default async function CommonAnswersByLength({
   const lengthLabel =
     parsed.type === 'eq' ? `${parsed.value}-letter` : `${parsed.value}+ letter`;
 
+  const lengths = [3, 4, 5, 6, 7];
+
   return (
     <div className="space-y-6">
       <Link
@@ -112,6 +114,34 @@ export default async function CommonAnswersByLength({
         These are the most frequently used {lengthLabel} crossword answers
         across major puzzle sources.
       </p>
+
+      <section className="flex flex-wrap gap-2 text-sm">
+        {lengths.map((n) => {
+          const slug = `${n}-letter`;
+          const active = parsed.type === 'eq' && parsed.value === n;
+
+          return (
+            <Link
+              key={n}
+              href={`/answers/common/length/${slug}`}
+              className={`rounded-full border px-3 py-1 ${
+                active
+                  ? 'bg-slate-900 text-white'
+                  : 'border-slate-200 text-verba-blue'
+              }`}
+            >
+              {n}-letter
+            </Link>
+          );
+        })}
+
+        <Link
+          href="/answers/common/length/8-plus"
+          className="rounded-full border border-slate-200 px-3 py-1 text-verba-blue"
+        >
+          8+ letters
+        </Link>
+      </section>
 
       {/* RESULT COUNT */}
       {total && total > 0 && (
