@@ -62,9 +62,46 @@ export async function GET() {
   </url>
 `;
 
+  // Alphabet browse pages
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+  const letterUrls = letters.map(
+    (L) => `
+  <url>
+    <loc>${BASE_URL}/answers/common/starts/${L}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+`,
+  );
+
+  // Letter + length combinations
+  const lengths = [
+    '3-letter',
+    '4-letter',
+    '5-letter',
+    '6-letter',
+    '7-letter',
+    '8-plus',
+  ];
+
+  const letterLengthUrls = letters.flatMap((L) =>
+    lengths.map(
+      (len) => `
+  <url>
+    <loc>${BASE_URL}/answers/common/starts/${L}/length/${len}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`,
+    ),
+  );
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${staticUrls}
+${letterUrls.join('\n')}
+${letterLengthUrls.join('\n')}
 ${answerUrls.join('\n')}
 </urlset>`;
 
