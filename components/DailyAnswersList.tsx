@@ -98,7 +98,7 @@ export function DailyAnswersList({ rows }: { rows: Row[] }) {
               <li
                 id={anchorId}
                 key={r.occurrence_id}
-                className="card-hover-marigold card-lift grid scroll-mt-24 grid-cols-[1fr_auto] gap-4 p-4"
+                className="card-hover-marigold card-lift grid scroll-mt-24 grid-cols-[1fr_auto] gap-4 bg-white p-4"
               >
                 <div className="flex gap-3">
                   {typeof r.number === 'number' && (

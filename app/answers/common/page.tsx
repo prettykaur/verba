@@ -14,6 +14,7 @@ type StatsRow = {
   occurrence_count: number;
   last_seen: string | null;
   last_seen_source_slug: string | null;
+  last_seen_occurrence_id: number | null;
 };
 
 type PageProps = {
@@ -74,7 +75,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
   let query = supabase
     .from('v_answer_stats')
     .select(
-      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
+      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug, last_seen_occurrence_id',
       { count: 'exact' },
     )
     .order('occurrence_count', { ascending: false })
@@ -216,21 +217,24 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
                     {r.answer_len} letters · Seen{' '}
                     {r.occurrence_count.toLocaleString()} time
                     {r.occurrence_count === 1 ? '' : 's'}
-                    {lastSeen && r.last_seen_source_slug && (
-                      <>
-                        {' · '}
-                        <Link
-                          href={`/answers/${encodeURIComponent(
-                            r.last_seen_source_slug,
-                          )}/${encodeURIComponent(
-                            String(r.last_seen).slice(0, 10),
-                          )}`}
-                          className="verba-link text-verba-blue"
-                        >
-                          Last seen {lastSeen}
-                        </Link>
-                      </>
-                    )}
+                    {lastSeen &&
+                      r.last_seen_source_slug &&
+                      r.last_seen_occurrence_id && (
+                        <>
+                          {' · '}
+                          <Link
+                            href={`/answers/${encodeURIComponent(
+                              r.last_seen_source_slug,
+                            )}/${encodeURIComponent(
+                              String(r.last_seen).slice(0, 10),
+                            )}#clue-${r.last_seen_occurrence_id}`}
+                            scroll={false}
+                            className="verba-link text-verba-blue"
+                          >
+                            Last seen {lastSeen}
+                          </Link>
+                        </>
+                      )}
                   </div>
                 </div>
 

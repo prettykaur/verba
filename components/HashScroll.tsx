@@ -2,10 +2,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 export function HashScroll() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const scrollToHash = () => {
@@ -40,7 +41,15 @@ export function HashScroll() {
 
     // slight delay ensures layout is ready
     setTimeout(scrollToHash, 50);
-  }, [pathname]);
+
+    // Also listen to hashchange events
+    const handleHashChange = () => scrollToHash();
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [pathname, searchParams]);
 
   return null;
 }

@@ -16,7 +16,7 @@ export async function getCommonAnswers({ letter, length, page }: Options) {
   let query = supabase
     .from('v_answer_stats')
     .select(
-      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug',
+      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug, last_seen_occurrence_id',
       { count: 'exact' },
     )
     .order('occurrence_count', { ascending: false });
