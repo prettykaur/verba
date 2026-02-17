@@ -56,6 +56,10 @@ export async function generateMetadata({
     title: `Most Common ${label} Crossword Answers | Verba`,
     description: `Browse the most common ${label.toLowerCase()} crossword answers.`,
     alternates: { canonical },
+    robots: {
+      index: page === 1,
+      follow: true,
+    },
   };
 }
 
