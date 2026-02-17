@@ -6,9 +6,12 @@ import Link from 'next/link';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Browse Crossword Answers | Verba',
+  title: 'Browse Crossword Answers by Letter, Length & Source | Verba',
   description:
-    'Explore crossword answers by letter, length, source, or frequency.',
+    'Browse crossword answers alphabetically, by word length, puzzle source, or frequency. Explore common crossword answers from NYT Mini, LA Times, Guardian, and more.',
+  alternates: {
+    canonical: 'https://tryverba.com/browse',
+  },
 };
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
