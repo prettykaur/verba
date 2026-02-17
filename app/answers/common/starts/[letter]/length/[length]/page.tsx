@@ -176,7 +176,24 @@ export default async function CommonByLetterAndLengthPage({
                     {r.answer_len} letters · Seen{' '}
                     {r.occurrence_count.toLocaleString()} time
                     {r.occurrence_count === 1 ? '' : 's'}
-                    {lastSeen && ` · Last seen ${lastSeen}`}
+                    {lastSeen &&
+                      r.last_seen_source_slug &&
+                      r.last_seen_occurrence_id && (
+                        <>
+                          {' · '}
+                          <Link
+                            href={`/answers/${encodeURIComponent(
+                              r.last_seen_source_slug,
+                            )}/${encodeURIComponent(
+                              String(r.last_seen).slice(0, 10),
+                            )}#clue-${r.last_seen_occurrence_id}`}
+                            scroll={false}
+                            className="verba-link text-verba-blue"
+                          >
+                            Last seen {lastSeen}
+                          </Link>
+                        </>
+                      )}
                   </div>
                 </div>
 
