@@ -53,7 +53,7 @@ export async function generateMetadata({
     title: `Common ${lengthLabel} Crossword Answers Starting With "${L}" | Verba`,
     description: `Browse ${lengthLabel.toLowerCase()} crossword answers that begin with "${L}".`,
     alternates: {
-      canonical: `https://tryverba.com/answers/common/starts/${L}`,
+      canonical: `https://tryverba.com/answers/common/starts/${L}/length/${length}`,
     },
   };
 }
