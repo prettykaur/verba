@@ -27,9 +27,9 @@ const SOURCES = [
 
 export default function BrowsePage() {
   return (
-    <div className="space-y-10">
+    <div className="max-w-5xl space-y-8">
       {/* Breadcrumb */}
-      <nav className="text-xs text-slate-500">
+      <nav aria-label="Breadcrumb" className="text-xs text-slate-500">
         <Link href="/" className="verba-link text-verba-blue">
           Home
         </Link>
@@ -40,22 +40,35 @@ export default function BrowsePage() {
       {/* Header */}
       <header className="space-y-2">
         <h1 className="text-2xl font-bold">Browse Crossword Answers</h1>
-        <p className="max-w-3xl text-slate-600">
-          Discover crossword answers by letter, length, source, or frequency.
+        <p className="text-slate-600">
+          {`Verba makes it easy to explore crossword answers by letter, word
+          length, puzzle source, and frequency. Whether you’re looking for
+          common three-letter crossword staples or browsing full archives from`}{' '}
+          <Link
+            href={`/answers/nyt-mini`}
+            className="verba-link text-verba-blue"
+          >
+            NYT Mini
+          </Link>{' '}
+          {`and other daily puzzles, you’ll find organized answer lists here.`}
         </p>
       </header>
 
       {/* Common Answers */}
       <section className="rounded-xl border bg-white p-6">
-        <h2 className="text-base font-semibold text-slate-900">
-          Most Common Answers
-        </h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Explore answers that appear most frequently in crosswords.
-        </p>
+        <div className="space-y-2">
+          <h2 className="text-base font-semibold text-slate-900">
+            Most Common Answers
+          </h2>
 
-        <div className="mt-4">
-          <Link href="/answers/common" className="verba-link text-verba-blue">
+          <p className="text-sm text-slate-600">
+            Explore answers that appear most frequently in crosswords.
+          </p>
+
+          <Link
+            href="/answers/common"
+            className="verba-link inline-block text-verba-blue"
+          >
             View Common Answers →
           </Link>
         </div>
