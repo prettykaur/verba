@@ -49,27 +49,6 @@ type PageParams = {
   params: Promise<{ source: string; date: string }>;
 };
 
-type SupabaseDailyRow = {
-  id: number;
-  number: number | null;
-  direction: 'across' | 'down' | null;
-  answer: string | null;
-  answer_display: string | null;
-
-  puzzle_day: {
-    puzzle_date: string;
-    puzzle_source: {
-      slug: string;
-      name: string;
-    }[];
-  }[];
-
-  clue: {
-    text: string;
-    slug_readable: string;
-  }[];
-};
-
 /* -------------------------------
    METADATA
 -------------------------------- */

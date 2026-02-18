@@ -119,10 +119,6 @@ async function fetchPrevNextClues(row: OccurrenceRow) {
   };
 }
 
-function first<T>(v: T[] | null | undefined): T | null {
-  return v?.[0] ?? null;
-}
-
 /* ---------------------------------------------------------
    Data fetchers (OBJECTS, not arrays)
 --------------------------------------------------------- */

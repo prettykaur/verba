@@ -76,7 +76,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  let query = supabase
+  const query = supabase
     .from('v_answer_stats')
     .select(
       'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug, last_seen_occurrence_id',

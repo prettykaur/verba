@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { HintsSection } from '@/components/HintsSection';
 import { LetterTilesReveal } from '@/components/LetterTilesReveal';
 import { track } from '@/lib/analytics';

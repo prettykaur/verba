@@ -15,6 +15,15 @@ type PageProps = {
   searchParams?: Promise<{ page?: string }>;
 };
 
+type CommonAnswerRow = {
+  answer_key: string;
+  answer_len: number;
+  occurrence_count: number;
+  last_seen: string | null;
+  last_seen_source_slug: string | null;
+  last_seen_occurrence_id: number | null;
+};
+
 function parseLengthParam(param: string) {
   if (param === '8-plus') {
     return { type: 'gte' as const, value: 8 };
@@ -158,7 +167,7 @@ export default async function CommonAnswersByLength({
       {/* RESULTS */}
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
-          {rows.map((r: any) => {
+          {rows.map((r: CommonAnswerRow) => {
             const slug = r.answer_key.toLowerCase();
             const lastSeen = r.last_seen
               ? formatPuzzleDateLong(String(r.last_seen).slice(0, 10))

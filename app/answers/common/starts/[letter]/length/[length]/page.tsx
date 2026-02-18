@@ -11,6 +11,15 @@ type PageProps = {
   searchParams?: Promise<{ page?: string }>;
 };
 
+type CommonAnswerRow = {
+  answer_key: string;
+  answer_len: number;
+  occurrence_count: number;
+  last_seen: string | null;
+  last_seen_source_slug: string | null;
+  last_seen_occurrence_id: number | null;
+};
+
 /* ===========================
    Helpers
 =========================== */
@@ -50,8 +59,8 @@ export async function generateMetadata({
     parsed.type === 'eq' ? `${parsed.value}-Letter` : `${parsed.value}+ Letter`;
 
   return {
-    title: `Common ${lengthLabel} Crossword Answers Starting With "${L}" | Verba`,
-    description: `Browse ${lengthLabel.toLowerCase()} crossword answers that begin with "${L}".`,
+    title: `Common ${lengthLabel} Crossword Answers Starting With ${L} | Verba`,
+    description: `Browse ${lengthLabel.toLowerCase()} crossword answers that begin with ${L}.`,
     alternates: {
       canonical: `https://tryverba.com/answers/common/starts/${L}/length/${length}`,
     },
@@ -109,16 +118,16 @@ export default async function CommonByLetterAndLengthPage({
         href={`/answers/common/starts/${L}`}
         className="verba-link text-sm text-verba-blue"
       >
-        ← Back to "{L}" answers
+        ← Back to {L} answers
       </Link>
 
       <h1 className="text-2xl font-bold">
-        Common {lengthLabel} Crossword Answers Starting With "{L}"
+        Common {lengthLabel} Crossword Answers Starting With {L}
       </h1>
 
       <p className="text-slate-600">
-        These {lengthLabel} crossword answers begin with "{L}" and are ordered
-        by frequency of appearance.
+        These {lengthLabel} crossword answers begin with {L} and are ordered by
+        frequency of appearance.
       </p>
 
       <div className="pt-4 text-sm text-slate-600">
@@ -127,7 +136,7 @@ export default async function CommonByLetterAndLengthPage({
           href={`/answers/common/starts/${L}`}
           className="verba-link text-verba-blue"
         >
-          All "{L}" answers
+          All {L} answers
         </Link>
         {' · '}
         <Link
@@ -153,7 +162,7 @@ export default async function CommonByLetterAndLengthPage({
       {/* RESULTS */}
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
-          {rows.map((r: any) => {
+          {rows.map((r: CommonAnswerRow) => {
             const slug = r.answer_key.toLowerCase();
             const lastSeen = r.last_seen
               ? formatPuzzleDateLong(String(r.last_seen).slice(0, 10))

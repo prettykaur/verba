@@ -12,6 +12,15 @@ type PageProps = {
   searchParams?: Promise<{ page?: string }>;
 };
 
+type CommonAnswerRow = {
+  answer_key: string;
+  answer_len: number;
+  occurrence_count: number;
+  last_seen: string | null;
+  last_seen_source_slug: string | null;
+  last_seen_occurrence_id: number | null;
+};
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -24,8 +33,8 @@ export async function generateMetadata({
   }
 
   return {
-    title: `Common Crossword Answers Starting With "${L}" | Verba`,
-    description: `Browse common crossword answers that start with "${L}".`,
+    title: `Common Crossword Answers Starting With ${L} | Verba`,
+    description: `Browse common crossword answers that start with ${L}.`,
     alternates: {
       canonical: `https://tryverba.com/answers/common/starts/${L}`,
     },
@@ -68,10 +77,10 @@ export default async function CommonByLetterPage({
         ← Back to Common Answers
       </Link>
       <h1 className="text-2xl font-bold">
-        Common Crossword Answers Starting With "{L}"
+        Common Crossword Answers Starting With {L}
       </h1>
       <p className="text-slate-600">
-        These crossword answers begin with the letter "{L}" and are ordered by
+        These crossword answers begin with the letter {L} and are ordered by
         frequency.
       </p>
 
@@ -140,7 +149,7 @@ export default async function CommonByLetterPage({
       )}
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
-          {rows.map((r: any) => {
+          {rows.map((r: CommonAnswerRow) => {
             const slug = r.answer_key.toLowerCase();
             const lastSeen = r.last_seen
               ? formatPuzzleDateLong(String(r.last_seen).slice(0, 10))
