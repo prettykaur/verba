@@ -223,6 +223,25 @@ export default async function HtmlSitemapPage() {
       </section>
 
       {/* -----------------------------
+          Archives
+      ----------------------------- */}
+      <section>
+        <h2 className="text-lg font-semibold">Puzzle Archives</h2>
+        <ul className="mt-3 space-y-1 text-sm">
+          {(sources ?? []).map((s) => (
+            <li key={s.slug}>
+              <Link
+                href={`/answers/${s.slug}/archive`}
+                className="verba-link text-verba-blue"
+              >
+                {s.name ?? s.slug} Archive
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* -----------------------------
           Utility
       ----------------------------- */}
       <section>
