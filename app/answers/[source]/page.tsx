@@ -397,6 +397,16 @@ export default async function SourceIndexPage({
           puzzles.
         </p>
       </section>
+
+      <div className="mt-4">
+        <Link
+          href={`/answers/${source}/archive`}
+          className="verba-link font-medium text-verba-blue"
+        >
+          Explore the full {sourceName} crossword archive →
+        </Link>
+      </div>
+
       <section className="rounded-xl border bg-slate-50 p-4 text-sm">
         <h2 className="font-semibold">Most Common Answers</h2>
         <p className="mt-1 text-slate-700">
