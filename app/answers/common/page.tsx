@@ -92,6 +92,10 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
   const { data, count } = await query.range(from, to);
 
   const rows = (data ?? []) as StatsRow[];
+
+  const showTop10 = page === 1 && !starts;
+  const top10 = showTop10 ? rows.slice(0, 10) : [];
+
   const total = typeof count === 'number' ? count : null;
   const totalPages = total ? Math.ceil(total / PAGE_SIZE) : null;
 
@@ -183,6 +187,44 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
           8+ letters
         </Link>
       </section>
+
+      {showTop10 && top10.length > 0 && (
+        <section className="rounded-xl border bg-slate-50 p-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Top 10 Most Common Answers
+          </h2>
+
+          <p className="mt-1 text-xs text-slate-600">
+            These answers appear most frequently across crossword puzzles.
+          </p>
+
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {top10.map((r) => {
+              const slug = toLowerAnswerSlug(r.answer_key);
+
+              return (
+                <li key={`top-${r.answer_key}`}>
+                  <Link
+                    href={`/answers/common/${encodeURIComponent(slug)}`}
+                    className="card-hover-marigold btn-press block rounded-lg border bg-white px-3 py-2 text-center text-sm font-medium text-slate-900"
+                  >
+                    <div className="verba-link inline-block">
+                      {r.answer_key}
+                    </div>
+
+                    <div className="mt-1 text-xs text-slate-500">
+                      Seen {r.occurrence_count.toLocaleString()} time
+                      {r.occurrence_count === 1 ? '' : 's'}
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <hr className="border-slate-200" />
 
       {/* Result Count */}
       {total !== null && (
