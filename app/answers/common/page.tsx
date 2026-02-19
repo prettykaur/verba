@@ -188,6 +188,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
         </Link>
       </section>
 
+      {/* Top 10 Answers Block */}
       {showTop10 && top10.length > 0 && (
         <section className="rounded-xl border bg-slate-50 p-4">
           <h2 className="text-sm font-semibold text-slate-900">
@@ -213,7 +214,7 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
                     </div>
 
                     <div className="mt-1 text-xs text-slate-500">
-                      Seen {r.occurrence_count.toLocaleString()} time
+                      {r.occurrence_count.toLocaleString()} appearance
                       {r.occurrence_count === 1 ? '' : 's'}
                     </div>
                   </Link>
