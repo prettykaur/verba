@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const revalidate = 3600;
 
@@ -268,6 +269,21 @@ export default async function CommonAnswerPage({ params }: PageProps) {
     ],
   };
 
+  /* ===== Breadcrumb ===== */
+
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    { name: 'Answers', url: 'https://tryverba.com/answers' },
+    {
+      name: 'Common Answers',
+      url: 'https://tryverba.com/answers/common',
+    },
+    {
+      name: stats.answer_key,
+      url: `https://tryverba.com/answers/common/${stats.answer_key.toLowerCase()}`,
+    },
+  ]);
+
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -304,9 +320,6 @@ export default async function CommonAnswerPage({ params }: PageProps) {
               </strong>{' '}
               {stats.occurrence_count === 1 ? 'time' : 'times'}
             </span>
-            {/* {stats.answer_len} letters · Seen{' '}
-          <strong>{stats.occurrence_count}</strong>{' '}
-          {stats.occurrence_count === 1 ? 'time' : 'times'} */}
             {lastSeenLabel && stats.last_seen_source_slug && (
               <>
                 <span aria-hidden>·</span>
@@ -505,6 +518,13 @@ export default async function CommonAnswerPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb),
+        }}
       />
     </div>
   );

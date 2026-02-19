@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { decodeQuickClueSlug } from '@/lib/quickClueSlug';
 import { RevealAnswer } from '@/components/RevealAnswer';
 import type { Metadata } from 'next';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -112,6 +113,12 @@ export default async function QuickCluePage({ params }: PageProps) {
   if (!phrase || phrase.length < 2) {
     notFound();
   }
+
+  const phraseTitle = titleCase(phrase);
+
+  const canonicalUrl = `https://tryverba.com/quick-clue/${encodeURIComponent(
+    slug,
+  )}`;
 
   /* -----------------------------
      2️⃣ Soft page lookup (non-blocking)
@@ -294,6 +301,21 @@ export default async function QuickCluePage({ params }: PageProps) {
     : null;
 
   /* -----------------------------
+     Breadcrumb Schema
+  ----------------------------- */
+
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    {
+      name: 'Quick Clues',
+      url: 'https://tryverba.com/browse',
+    },
+    {
+      name: phraseTitle,
+      url: canonicalUrl,
+    },
+  ]);
+  /* -----------------------------
      6️⃣ Render
   ----------------------------- */
 
@@ -472,6 +494,13 @@ export default async function QuickCluePage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb),
+        }}
       />
     </div>
   );

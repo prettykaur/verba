@@ -1,6 +1,7 @@
 // app/faq/page.tsx
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const revalidate = 3600; // 1h
 
@@ -61,6 +62,14 @@ export default function FAQPage() {
       acceptedAnswer: { '@type': 'Answer', text: a },
     })),
   };
+
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    {
+      name: 'FAQ',
+      url: 'https://tryverba.com/faq',
+    },
+  ]);
 
   return (
     <div className="space-y-6">
@@ -146,6 +155,13 @@ export default function FAQPage() {
         </Link>
         .
       </div>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb),
+        }}
+      />
     </div>
   );
 }

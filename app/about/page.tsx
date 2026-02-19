@@ -1,5 +1,6 @@
 // app/about/page.tsx
 import type { Metadata } from 'next';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const revalidate = 3600; // 1h
 
@@ -31,6 +32,14 @@ export default function AboutPage() {
     url: 'https://tryverba.com/',
     logo: 'https://tryverba.com/icon.png',
   };
+
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    {
+      name: 'About',
+      url: 'https://tryverba.com/about',
+    },
+  ]);
 
   return (
     <div className="space-y-6">
@@ -75,6 +84,13 @@ export default function AboutPage() {
         </a>
         .
       </p>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb),
+        }}
+      />
     </div>
   );
 }

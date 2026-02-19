@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateShort } from '@/lib/formatDate';
 import { getSourceDisplay } from '@/lib/sourceDisplay';
 import { Metadata } from 'next';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const revalidate = 3600;
 
@@ -76,42 +77,26 @@ export default async function MonthArchivePage({
     { month: 'long' },
   );
 
-  const breadcrumb = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: 'https://tryverba.com',
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: sourceName,
-        item: `https://tryverba.com/answers/${source}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: 'Archive',
-        item: `https://tryverba.com/answers/${source}/archive`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 4,
-        name: year,
-        item: `https://tryverba.com/answers/${source}/archive/${year}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 5,
-        name: `${monthLabel} ${year}`,
-        item: `https://tryverba.com/answers/${source}/archive/${year}/${month}`,
-      },
-    ],
-  };
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    { name: 'Answers', url: 'https://tryverba.com/answers' },
+    {
+      name: sourceName,
+      url: `https://tryverba.com/answers/${source}`,
+    },
+    {
+      name: 'Archive',
+      url: `https://tryverba.com/answers/${source}/archive`,
+    },
+    {
+      name: year,
+      url: `https://tryverba.com/answers/${source}/archive/${year}`,
+    },
+    {
+      name: `${monthLabel} ${year}`,
+      url: `https://tryverba.com/answers/${source}/archive/${year}/${month}`,
+    },
+  ]);
 
   return (
     <div className="max-w-5xl space-y-8">

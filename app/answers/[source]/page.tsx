@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateShort } from '@/lib/formatDate';
 import { TrackedLink } from '@/components/TrackedLink';
 import { notFound } from 'next/navigation';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const revalidate = 3600;
 const QUERY_TIMEOUT_MS = 4000;
@@ -157,6 +158,13 @@ export default async function SourceIndexPage({
 
     const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
 
+    // Breadcrumb
+    const breadcrumb = buildBreadcrumb([
+      { name: 'Home', url: 'https://tryverba.com' },
+      { name: 'Answers', url: 'https://tryverba.com/answers' },
+      { name: sourceName, url: `https://tryverba.com/answers/${source}` },
+    ]);
+
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{sourceName}</h1>
@@ -228,6 +236,11 @@ export default async function SourceIndexPage({
             ← Back to all sources
           </Link>
         </div>
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+        />
       </div>
     );
   }
@@ -383,6 +396,16 @@ export default async function SourceIndexPage({
 
   console.log('months:', months);
 
+  // Breadcrumb
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    { name: 'Answers', url: 'https://tryverba.com/answers' },
+    {
+      name: sourceName,
+      url: `https://tryverba.com/answers/${source}`,
+    },
+  ]);
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{sourceName} Crossword Answers</h1>
@@ -528,6 +551,10 @@ export default async function SourceIndexPage({
             })),
           }),
         }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
       />
     </div>
   );

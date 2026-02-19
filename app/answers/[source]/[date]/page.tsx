@@ -5,6 +5,7 @@ import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { HashScroll } from '@/components/HashScroll';
 import { DailyAnswersList } from '@/components/DailyAnswersList';
 import Link from 'next/link';
+import { buildBreadcrumb } from '@/lib/schema';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -178,6 +179,20 @@ export default async function DailyAnswersPage({ params }: PageParams) {
   const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
   const heroKey = `${source}/${isoDate}`;
 
+  // Breadcrumb
+  const breadcrumb = buildBreadcrumb([
+    { name: 'Home', url: 'https://tryverba.com' },
+    { name: 'Answers', url: 'https://tryverba.com/answers' },
+    {
+      name: sourceName,
+      url: `https://tryverba.com/answers/${source}`,
+    },
+    {
+      name: displayDate,
+      url: `https://tryverba.com/answers/${source}/${isoDate}`,
+    },
+  ]);
+
   // Prev / next dates (robust + fast)
   const { data: prevRow } = await supabase
     .from('v_search_results_pretty')
@@ -302,6 +317,13 @@ export default async function DailyAnswersPage({ params }: PageParams) {
           </p>
         </div>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb),
+        }}
+      />
     </div>
   );
 }
