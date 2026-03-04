@@ -54,18 +54,6 @@ function parseClueNumber(label: string): number {
   return Number.parseInt(m[1], 10);
 }
 
-function generateEnumerationFromRaw(answerRaw: string): string {
-  const parts = answerRaw
-    .trim()
-    .split(/[^A-Za-z]+/g)
-    .filter(Boolean);
-
-  if (parts.length === 0) {
-    return String(answerRaw.replace(/[^A-Za-z]/g, '').length);
-  }
-  return parts.map((p) => String(p.length)).join(',');
-}
-
 function normalizeAnswerToLetters(answerRaw: string): string {
   return answerRaw.replace(/[^A-Za-z]/g, '').toUpperCase();
 }
@@ -194,7 +182,6 @@ export async function ingestNytMini(
       if (!clueText) throw new Error('Missing clue text');
       if (!answer) throw new Error('Missing answer');
 
-      const enumeration = generateEnumerationFromRaw(answerRaw);
       const sourceUrl = `https://www.nytimes.com/crosswords/game/mini/${puzzleDate}`;
 
       const clueMd5 = md5(clueText);
@@ -210,8 +197,6 @@ export async function ingestNytMini(
         direction: dir,
         clue_text: clueText,
         answer,
-        enumeration,
-        enumeration_source: 'derived',
         source_url: sourceUrl,
         slug_md5: clueMd5,
         slug_readable: clueReadable,
@@ -262,7 +247,7 @@ export async function ingestNytMini(
     };
   }
 
-  // 🔥 CRITICAL: clear existing staging rows for this puzzle
+  // CRITICAL: clear existing staging rows for this puzzle
   // This makes ingestion idempotent and prevents duplicate promotion failures
   await supabase
     .from('staging_occurrence_seed')
@@ -281,8 +266,6 @@ export async function ingestNytMini(
         direction: r.direction,
         clue_text: r.clue_text,
         answer: r.answer,
-        enumeration: r.enumeration,
-        enumeration_source: r.enumeration_source,
         source_url: r.source_url,
         slug_readable: r.slug_readable,
         slug_md5: r.slug_md5,
