@@ -2,8 +2,11 @@
 -- Script: 00022_rpc_process_staging_seed.sql
 -- Author: Pretty Kaur
 -- Date: 2026-01-12
+-- Updated: 2026-03-04
 -- Purpose:
 --   - Wraps staging promotion SQL in a callable RPC
+--   - Promote staging_occurrence_seed into puzzle_source/puzzle_day/clue/clue_occurrence
+--   - Enumeration retired: do not insert enumeration/answer_display and do not derive answer_display
 -- ===========================================
 
 create or replace function public.process_staging_occurrence_seed()
@@ -75,14 +78,12 @@ begin
 
   -- 4b) Insert fresh occurrences
   insert into clue_occurrence (
-    puzzle_day_id,
-    clue_id,
-    number,
-    direction,
-    answer,
-    enumeration,
-    source_url,
-    answer_display
+  puzzle_day_id,
+  clue_id,
+  number,
+  direction,
+  answer,
+  source_url
   )
   select
     pd.id,
@@ -90,9 +91,7 @@ begin
     s.number,
     s.direction,
     upper(s.answer),
-    nullif(s.enumeration,''),
-    nullif(s.source_url,''),
-    nullif(s.answer_display,'')
+    nullif(s.source_url,'')
   from staging_occurrence_seed s
   join puzzle_source ps
     on ps.slug = coalesce(nullif(s.source_slug,''), 'seed')
@@ -113,13 +112,6 @@ begin
   from word w
   where co.word_id is null
     and w.text = upper(co.answer);
-
-  -- 6) Fill answer_display using enumeration if provided (only when missing)
-  update clue_occurrence
-  set answer_display = format_answer(answer, enumeration, ' ')
-  where enumeration is not null
-    and enumeration <> ''
-    and answer_display is null;
 end;
 $$;
 
