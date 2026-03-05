@@ -9,7 +9,10 @@
     "lint": "eslint",
     "ingest:nyt-mini": "tsx scripts/ingest/runNytMini.ts",
     "ingest:nyt-mini:date": "tsx scripts/ingest/runNytMini.ts",
-    "ingest:nyt-mini:range": "tsx scripts/ingest/runNytMiniRange.ts"
+    "ingest:nyt-mini:range": "tsx scripts/ingest/runNytMiniRange.ts",
+    "ingest:nyt-crossword": "tsx scripts/ingest/runNytCrossword.ts",
+    "ingest:nyt-crossword:date": "tsx scripts/ingest/runNytCrossword.ts",
+    "ingest:nyt-crossword:range": "tsx scripts/ingest/runNytCrosswordRange.ts"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.32.1",
