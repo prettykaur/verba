@@ -9,6 +9,7 @@ import { StickyClueSolveBar } from '@/components/StickyClueSolveBar.client';
 import { CluePrevNextNav } from '@/components/CluePrevNextNav.client';
 import { ClueFAQ } from '@/components/ClueFAQ';
 import { encodeQuickClueSlug } from '@/lib/quickClueSlug';
+import { resolveSourceName } from '@/lib/sourceDisplay';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -351,7 +352,8 @@ export async function generateMetadata({
   }
 
   const title = `${row.clue_text} — Crossword Clue Answer | Verba`;
-  const description = `See the answer for "${row.clue_text}" from the ${row.source_name} crossword.`;
+  const sourceName = resolveSourceName(row.source_slug, row.source_name);
+  const description = `See the answer for "${row.clue_text}" from the ${sourceName} crossword.`;
 
   return {
     title,
@@ -388,6 +390,7 @@ export default async function CluePage({ params, searchParams }: PageProps) {
 
   if (!row) row = await fetchLatestOccurrenceForSlug(decoded);
   if (!row) notFound();
+  const sourceName = resolveSourceName(row.source_slug, row.source_name);
 
   const displayAnswer = (row.answer_pretty ?? row.answer ?? '—').trim();
   const cleaned = cleanAnswer(displayAnswer);
@@ -436,7 +439,7 @@ export default async function CluePage({ params, searchParams }: PageProps) {
               name: 'When was this clue last seen?',
               acceptedAnswer: {
                 '@type': 'Answer',
-                text: `This clue last appeared in the ${row.source_name} crossword on ${displayDate}.`,
+                text: `This clue last appeared in the ${sourceName} on ${displayDate}.`,
               },
             },
           ]
@@ -463,7 +466,7 @@ export default async function CluePage({ params, searchParams }: PageProps) {
               href={`/answers/${encodeURIComponent(row.source_slug)}`}
               className="verba-link text-verba-blue"
             >
-              {row.source_name ?? row.source_slug}
+              {sourceName}
             </Link>
           </>
         )}
@@ -534,8 +537,7 @@ export default async function CluePage({ params, searchParams }: PageProps) {
       <section className="mt-6 rounded-xl border bg-slate-50 p-4 text-sm">
         <h2 className="font-semibold">About this clue</h2>
         <p className="mt-1 text-slate-700">
-          This clue appeared in the {row.source_name ?? row.source_slug}{' '}
-          crossword
+          This clue appeared in the {sourceName}
           {displayDate ? ` on ${displayDate}` : ''}. The answer{' '}
           <strong>{displayAnswer}</strong> is a {letterCount}-letter entry.
         </p>
@@ -578,7 +580,7 @@ export default async function CluePage({ params, searchParams }: PageProps) {
         answer={displayAnswer}
         letterCount={letterCount}
         puzzleDate={displayDate}
-        sourceName={row.source_name}
+        sourceName={sourceName}
         sourceHref={`/answers/${encodeURIComponent(row.source_slug)}`}
         dateHref={`/answers/${encodeURIComponent(
           row.source_slug,

@@ -6,17 +6,10 @@ import { formatPuzzleDateShort } from '@/lib/formatDate';
 import { TrackedLink } from '@/components/TrackedLink';
 import { notFound } from 'next/navigation';
 import { buildBreadcrumb } from '@/lib/schema';
+import { getSourceDisplay, resolveSourceName } from '@/lib/sourceDisplay';
 
 export const revalidate = 3600;
 const QUERY_TIMEOUT_MS = 4000;
-
-const SOURCE_NAMES: Record<string, string> = {
-  'nyt-mini': 'NYT Mini',
-  'la-times': 'LA Times',
-  guardian: 'The Guardian',
-  'usa-today': 'USA Today',
-  seed: 'Classic Crossword Clues',
-};
 
 const CLASSIC_PAGE_SIZE = 100;
 const MAX_CLASSIC_RESULTS = 5000;
@@ -53,7 +46,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { source } = await params;
   const letter = (await searchParams)?.letter?.toUpperCase();
-  const sourceName = SOURCE_NAMES[source] ?? source;
+  const sourceName = getSourceDisplay(source);
 
   const isClassic = source === 'seed';
 
@@ -156,7 +149,7 @@ export default async function SourceIndexPage({
 
     if (currentPage > totalPages) notFound();
 
-    const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
+    const sourceName = resolveSourceName(source, rows[0]?.source_name);
 
     // Breadcrumb
     const breadcrumb = buildBreadcrumb([
@@ -339,7 +332,7 @@ export default async function SourceIndexPage({
     clearTimeout(timeout);
   }
 
-  const sourceName = data[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
+  const sourceName = resolveSourceName(source, data[0]?.source_name);
 
   // 1. Deduplicate dates
   const dates = Array.from(

@@ -4,32 +4,36 @@ import { Card, CardBody } from '@/components/ui/Card';
 import { TopSearches } from '@/components/TopSearches';
 import { EmailSubscribe } from '@/components/EmailSubscribe';
 import Link from 'next/link';
+import { getSourceDisplay } from '@/lib/sourceDisplay';
 
 export const dynamic = 'force-dynamic';
 
 const TODAYS_PUZZLES = [
   {
-    name: 'NYT Mini',
     slug: 'nyt-mini',
     active: true,
   },
   {
-    name: 'LA Times',
+    slug: 'nyt-crossword',
+    active: true,
+  },
+  {
+    slug: 'la-times',
     active: false,
   },
   {
-    name: 'The Guardian',
+    slug: 'the-guardian',
     active: false,
   },
   {
-    name: 'The Atlantic',
+    slug: 'the-atlantic',
     active: false,
   },
   {
-    name: 'USA Today',
+    slug: 'usa-today',
     active: false,
   },
-];
+] as const;
 
 export default function HomePage() {
   return (
@@ -54,13 +58,13 @@ export default function HomePage() {
           {TODAYS_PUZZLES.map((puzzle) =>
             puzzle.active ? (
               <Link
-                key={puzzle.name}
+                key={puzzle.slug}
                 href={`/answers/${puzzle.slug}/today`}
                 className="block"
               >
                 <Card className="card-hover-marigold card-lift transition">
                   <CardBody className="space-y-1 text-center font-medium">
-                    <div>{puzzle.name}</div>
+                    <div>{getSourceDisplay(puzzle.slug)}</div>
 
                     <div className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
                       Today
@@ -69,9 +73,9 @@ export default function HomePage() {
                 </Card>
               </Link>
             ) : (
-              <Card key={puzzle.name} className="cursor-not-allowed opacity-50">
+              <Card key={puzzle.slug} className="cursor-not-allowed opacity-50">
                 <CardBody className="text-center font-medium">
-                  {puzzle.name}
+                  {getSourceDisplay(puzzle.slug)}
                   <div className="mt-1 text-xs text-slate-500">Coming soon</div>
                 </CardBody>
               </Card>

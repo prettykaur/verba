@@ -6,6 +6,7 @@ import { HashScroll } from '@/components/HashScroll';
 import { DailyAnswersList } from '@/components/DailyAnswersList';
 import Link from 'next/link';
 import { buildBreadcrumb } from '@/lib/schema';
+import { resolveSourceName, getSourceDisplay } from '@/lib/sourceDisplay';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -14,10 +15,6 @@ export const dynamicParams = true;
 /* -------------------------------
    CONFIG
 -------------------------------- */
-
-const SOURCE_NAMES: Record<string, string> = {
-  'nyt-mini': 'NYT Mini',
-};
 
 // Unique intro blurbs per hero page
 const HERO_INTROS: Record<string, string> = {
@@ -62,7 +59,7 @@ export async function generateMetadata({
   const isoDate = decodeURIComponent(awaited.date).trim().slice(0, 10);
 
   const displayDate = formatPuzzleDateLong(isoDate);
-  const sourceName = SOURCE_NAMES[source] ?? source;
+  const sourceName = getSourceDisplay(source);
 
   const url = `https://tryverba.com/answers/${source}/${isoDate}`;
 
@@ -176,7 +173,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
 
   console.log(rows[0]);
 
-  const sourceName = rows[0]?.source_name ?? SOURCE_NAMES[source] ?? source;
+  const sourceName = resolveSourceName(source, rows[0]?.source_name);
   const heroKey = `${source}/${isoDate}`;
 
   // Breadcrumb
@@ -229,8 +226,15 @@ export default async function DailyAnswersPage({ params }: PageParams) {
       <p className="text-slate-600">
         {HERO_INTROS[heroKey] ?? (
           <>
-            Today’s {sourceName} crossword answers for {displayDate}. Below
-            you’ll find all clues and solutions, updated daily.
+            Today’s{' '}
+            <Link
+              href={`/answers/${source}`}
+              className="verba-link text-verba-blue"
+            >
+              {sourceName}
+            </Link>{' '}
+            crossword answers for {displayDate}. Below you’ll find all clues and
+            solutions, updated daily.
           </>
         )}
       </p>
@@ -270,7 +274,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
               href={`/answers/${source}`}
               className="verba-link text-verba-blue"
             >
-              {sourceName} crossword
+              {sourceName}
             </Link>{' '}
             published on {displayDate}. The{' '}
             <Link

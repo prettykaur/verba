@@ -7,6 +7,7 @@ import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { RelatedCluesList } from '@/components/RelatedCluesList.client';
 import { StickyClueSolveBar } from '@/components/StickyClueSolveBar.client';
 import { CluePrevNextNav } from '@/components/CluePrevNextNav.client';
+import { resolveSourceName } from '@/lib/sourceDisplay';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -79,7 +80,7 @@ export async function generateMetadata({
   }
 
   const row = data as Row;
-  const sourceName = row.source_name ?? row.source_slug ?? 'Crossword';
+  const sourceName = resolveSourceName(row.source_slug, row.source_name);
   const clueText = row.clue_text;
   const date = row.puzzle_date ?? undefined;
   const displayDate = date ? formatPuzzleDateLong(date) : null;
@@ -146,7 +147,7 @@ export default async function CluePage({ params }: PageParams) {
 
   const row = data as Row;
 
-  const sourceName = row.source_name ?? row.source_slug ?? 'Crossword';
+  const sourceName = resolveSourceName(row.source_slug, row.source_name);
   const date = row.puzzle_date ?? undefined;
   const displayDate = date ? formatPuzzleDateLong(date) : null;
 
@@ -376,7 +377,7 @@ export default async function CluePage({ params }: PageParams) {
       <section className="mt-6 rounded-xl border bg-slate-50 p-4 text-sm">
         <h2 className="font-semibold">About this clue</h2>
         <p className="mt-1 text-slate-700">
-          This clue appeared in the {sourceName} crossword
+          This clue appeared in the {sourceName}
           {displayDate ? ` on ${displayDate}` : ''}. The answer{' '}
           <strong>{displayAnswer}</strong> is a {letterCount}-letter entry.
         </p>

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
+import { resolveSourceName } from '@/lib/sourceDisplay';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -81,7 +82,7 @@ export default async function HtmlSitemapPage() {
                 href={`/answers/${s.slug}`}
                 className="verba-link text-verba-blue"
               >
-                {s.name ?? s.slug}
+                {resolveSourceName(s.slug, s.name)}
               </Link>
             </li>
           ))}

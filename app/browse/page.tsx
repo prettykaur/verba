@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getSourceDisplay } from '@/lib/sourceDisplay';
 
 export const revalidate = 3600;
 
@@ -17,13 +18,14 @@ export const metadata: Metadata = {
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const LENGTHS = [3, 4, 5, 6, 7];
 
-const SOURCES = [
-  { name: 'Classic Crossword Clues', slug: 'seed' },
-  { name: 'NYT Mini', slug: 'nyt-mini' },
-  { name: 'LA Times', slug: 'la-times' },
-  { name: 'The Guardian', slug: 'guardian' },
-  { name: 'USA Today', slug: 'usa-today' },
-];
+const SOURCE_SLUGS = [
+  'nyt-mini',
+  'nyt-crossword',
+  'la-times',
+  'the-guardian',
+  'usa-today',
+  'seed',
+] as const;
 
 export default function BrowsePage() {
   return (
@@ -126,13 +128,13 @@ export default function BrowsePage() {
         </h2>
 
         <ul className="mt-4 space-y-2 text-sm">
-          {SOURCES.map((src) => (
-            <li key={src.slug}>
+          {SOURCE_SLUGS.map((slug) => (
+            <li key={slug}>
               <Link
-                href={`/answers/${src.slug}`}
+                href={`/answers/${slug}`}
                 className="verba-link text-verba-blue"
               >
-                {src.name}
+                {getSourceDisplay(slug)}
               </Link>
             </li>
           ))}

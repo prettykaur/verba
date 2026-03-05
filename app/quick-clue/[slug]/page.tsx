@@ -6,6 +6,7 @@ import { decodeQuickClueSlug } from '@/lib/quickClueSlug';
 import { RevealAnswer } from '@/components/RevealAnswer';
 import type { Metadata } from 'next';
 import { buildBreadcrumb } from '@/lib/schema';
+import { resolveSourceName } from '@/lib/sourceDisplay';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -148,6 +149,7 @@ export default async function QuickCluePage({ params }: PageProps) {
         answer_pretty,
         answer_len,
         puzzle_date,
+        source_slug,
         source_name,
         direction
       `,
@@ -178,6 +180,7 @@ export default async function QuickCluePage({ params }: PageProps) {
     examples: string[];
     primaryOccurrenceId: number;
     primaryClueSlug: string;
+    sourceSlug?: string;
     sourceName?: string;
     direction?: 'across' | 'down' | null;
   };
@@ -202,6 +205,7 @@ export default async function QuickCluePage({ params }: PageProps) {
         examples: [row.clue_text],
         primaryOccurrenceId: row.occurrence_id,
         primaryClueSlug: row.clue_slug_readable,
+        sourceSlug: row.source_slug ?? undefined,
         sourceName: row.source_name ?? undefined,
         direction: row.direction ?? null,
       });
@@ -391,12 +395,16 @@ export default async function QuickCluePage({ params }: PageProps) {
                     •
                   </span>
 
-                  {a.sourceName && (
+                  {(a.sourceSlug || a.sourceName) && (
                     <a
-                      href={`/answers/${encodeURIComponent(a.sourceName.toLowerCase().replace(/\s+/g, '-'))}`}
+                      href={
+                        a.sourceSlug
+                          ? `/answers/${encodeURIComponent(a.sourceSlug)}`
+                          : undefined
+                      }
                       className="verba-link text-verba-blue"
                     >
-                      {a.sourceName}
+                      {resolveSourceName(a.sourceSlug ?? '', a.sourceName)}
                     </a>
                   )}
 
