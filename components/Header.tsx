@@ -66,7 +66,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           {/* Today link (desktop only for now) */}
           <Link
-            href="/answers/nyt-mini/today"
+            href="/today"
             className="verba-link hidden text-sm text-verba-blue md:inline"
           >
             Today
@@ -126,7 +126,7 @@ export function Header() {
               FAQ
             </Link>
             <Link
-              href="/answers/nyt-mini/today"
+              href="/today"
               className="px-4 py-2 hover:bg-slate-50"
               onClick={() => setOpen(false)}
             >
