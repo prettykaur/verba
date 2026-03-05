@@ -2,6 +2,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import { error } from 'console';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
@@ -31,7 +32,7 @@ export async function logIngestFailure(args: {
       source_slug: args.sourceSlug,
       puzzle_date: args.puzzleDate,
       stage: args.stage,
-      message: args.error,
+      error: args.error,
       details: args.details ?? null,
     });
 
@@ -42,7 +43,7 @@ export async function logIngestFailure(args: {
       source_slug: args.sourceSlug,
       puzzle_date: args.puzzleDate,
       stage: args.stage,
-      message: args.error,
+      error: args.error,
     });
 
     if (fallback.error) {
