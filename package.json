@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "ingest:nyt-mini": "tsx scripts/ingest/runNytMini.ts",
     "ingest:nyt-mini:date": "tsx scripts/ingest/runNytMini.ts",
     "ingest:nyt-mini:range": "tsx scripts/ingest/runNytMiniRange.ts",
