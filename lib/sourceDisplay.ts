@@ -5,7 +5,7 @@ export const SOURCE_DISPLAY: Record<string, string> = {
   'nyt-midi': 'NYT Midi',
   'nyt-crossword': 'NYT Crossword',
   'la-times': 'LA Times',
-  guardian: 'The Guardian',
+  'the-guardian': 'The Guardian',
   'usa-today': 'USA Today',
   seed: 'Classic Crossword Clues',
 };
@@ -22,5 +22,7 @@ export function resolveSourceName(
   slug: string,
   dbName?: string | null,
 ): string {
-  return dbName ?? getSourceDisplay(slug);
+  return getSourceDisplay(slug) !== slug
+    ? getSourceDisplay(slug)
+    : (dbName ?? slug);
 }
