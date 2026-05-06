@@ -11,8 +11,8 @@ import { ClueFAQ } from '@/components/ClueFAQ';
 import { encodeQuickClueSlug } from '@/lib/quickClueSlug';
 import { resolveSourceName } from '@/lib/sourceDisplay';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// export const dynamic = 'force-dynamic';
+export const revalidate = 86400; // 24 hours
 
 /* ---------------------------------------------------------
    Types
@@ -229,7 +229,7 @@ async function fetchLatestOccurrenceForSlug(
 
 async function fetchRelatedClues(
   current: OccurrenceRow,
-  limit = 60,
+  limit = 12,
 ): Promise<OccurrenceRow[]> {
   const answer = (current.answer_pretty ?? current.answer ?? '').trim();
 
@@ -287,6 +287,47 @@ async function fetchRelatedClues(
   );
 }
 
+// async function fetchAnswerStats(row: OccurrenceRow) {
+//   const answer = (row.answer_pretty ?? row.answer ?? '').trim();
+
+//   if (!answer) {
+//     return {
+//       totalCount: null,
+//       seenInCount: null,
+//       otherCluesForSameAnswer: [],
+//     };
+//   }
+
+//   const { data, count, error } = await supabase
+//     .from('v_search_results_pretty')
+//     .select('occurrence_id, clue_text', {
+//       count: 'exact',
+//     })
+//     .or(`answer.eq.${answer},answer_pretty.eq.${answer}`);
+
+//   if (error || !data) {
+//     console.error('[fetchAnswerStats] supabase error:', error);
+//     return {
+//       totalCount: null,
+//       seenInCount: null,
+//       otherCluesForSameAnswer: [],
+//     };
+//   }
+
+//   const totalCount = typeof count === 'number' ? count : null;
+
+//   const filtered = data.filter((r) => r.occurrence_id !== row.occurrence_id);
+
+//   return {
+//     totalCount,
+//     seenInCount: typeof count === 'number' ? Math.max(count - 1, 0) : null,
+//     otherCluesForSameAnswer: filtered
+//       .map((r) => r.clue_text)
+//       .filter(Boolean)
+//       .slice(0, 50),
+//   };
+// }
+
 async function fetchAnswerStats(row: OccurrenceRow) {
   const answer = (row.answer_pretty ?? row.answer ?? '').trim();
 
@@ -298,15 +339,18 @@ async function fetchAnswerStats(row: OccurrenceRow) {
     };
   }
 
-  const { data, count, error } = await supabase
-    .from('v_search_results_pretty')
-    .select('occurrence_id, clue_text', {
-      count: 'exact',
-    })
-    .or(`answer.eq.${answer},answer_pretty.eq.${answer}`);
+  const filter = `answer.eq.${answer},answer_pretty.eq.${answer}`;
 
-  if (error || !data) {
-    console.error('[fetchAnswerStats] supabase error:', error);
+  const { count, error: countError } = await supabase
+    .from('v_search_results_pretty')
+    .select('occurrence_id', {
+      count: 'exact',
+      head: true,
+    })
+    .or(filter);
+
+  if (countError) {
+    console.error('[fetchAnswerStats:count] supabase error:', countError);
     return {
       totalCount: null,
       seenInCount: null,
@@ -314,17 +358,23 @@ async function fetchAnswerStats(row: OccurrenceRow) {
     };
   }
 
-  const totalCount = typeof count === 'number' ? count : null;
+  const { data, error: cluesError } = await supabase
+    .from('v_search_results_pretty')
+    .select('occurrence_id, clue_text')
+    .or(filter)
+    .neq('occurrence_id', row.occurrence_id)
+    .limit(10);
 
-  const filtered = data.filter((r) => r.occurrence_id !== row.occurrence_id);
+  if (cluesError) {
+    console.error('[fetchAnswerStats:clues] supabase error:', cluesError);
+  }
 
   return {
-    totalCount,
+    totalCount: typeof count === 'number' ? count : null,
     seenInCount: typeof count === 'number' ? Math.max(count - 1, 0) : null,
-    otherCluesForSameAnswer: filtered
+    otherCluesForSameAnswer: (data ?? [])
       .map((r) => r.clue_text)
-      .filter(Boolean)
-      .slice(0, 50),
+      .filter(Boolean),
   };
 }
 
