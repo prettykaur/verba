@@ -172,8 +172,12 @@ export async function GET(req: Request) {
     );
   }
 
-  const isPattern = /[?*]/.test(rawQ);
-  const likePattern = rawQ.replaceAll('*', '%').replaceAll('?', '_');
+  const isPattern = /[?*_]/.test(rawQ);
+
+  const likePattern = rawQ
+    .toUpperCase()
+    .replaceAll('*', '%')
+    .replaceAll('?', '_');
 
   // Base select from pretty view, with extra columns for scoring
   let query = supabase
@@ -194,7 +198,7 @@ export async function GET(req: Request) {
       { count: 'exact' },
     )
     // fetch a bit more and then rank client-side
-    .limit(80);
+    .limit(30);
 
   if (isPattern) {
     // pattern match on the pretty answer text (keep existing behaviour)
