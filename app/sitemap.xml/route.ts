@@ -31,6 +31,10 @@ export async function GET() {
     <loc>${BASE_URL}/sitemap/archives.xml</loc>
   </sitemap>
 
+  <sitemap>
+    <loc>${BASE_URL}/sitemap/patterns.xml</loc>
+  </sitemap>
+
 </sitemapindex>`;
 
   return new NextResponse(body, {
