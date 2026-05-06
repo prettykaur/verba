@@ -188,6 +188,31 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
         </Link>
       </section>
 
+      {/* Popular Patterns Block */}
+      <div className="mb-8 mt-6">
+        <h2 className="mb-3 text-lg font-semibold">
+          Popular crossword patterns
+        </h2>
+
+        <div className="flex flex-wrap gap-1 text-sm">
+          <Link href="/pattern/_A_ER" className="verba-link text-verba-blue">
+            _A_ER words
+          </Link>
+          {' · '}
+          <Link href="/pattern/__ING" className="verba-link text-verba-blue">
+            Words ending in ING
+          </Link>
+          {' · '}
+          <Link href="/pattern/A____" className="verba-link text-verba-blue">
+            5-letter words starting with A
+          </Link>
+          {' · '}
+          <Link href="/pattern/__ED" className="verba-link text-verba-blue">
+            Words ending in ED
+          </Link>
+        </div>
+      </div>
+
       {/* Top 10 Answers Block */}
       {showTop10 && top10.length > 0 && (
         <section className="rounded-xl border bg-slate-50 p-4">
