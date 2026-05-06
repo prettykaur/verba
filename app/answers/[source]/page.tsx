@@ -241,96 +241,46 @@ export default async function SourceIndexPage({
   /* ===============================
      DAILY MODE
   =============================== */
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
-
-  let data: { puzzle_date: string | null; source_name: string | null }[] = [];
-
-  const page = Number((await searchParams)?.page ?? 1);
+  const resolvedSearchParams = await searchParams;
+  const page = Math.max(1, Number(resolvedSearchParams?.page ?? 1));
   const MONTHS_PER_PAGE = 2;
 
-  // We only need enough data to render:
-  // - the requested page (MONTHS_PER_PAGE months)
-  // - plus enough extra to know if "Older puzzles →" should exist
-  const monthsNeeded = page * MONTHS_PER_PAGE + 1;
+  const { data: sourceRow, error: sourceError } = await supabase
+    .from('puzzle_source')
+    .select('id, name, slug')
+    .eq('slug', source)
+    .maybeSingle();
 
-  const CHUNK_SIZE = 1000; // plays nicely with typical PostgREST max-rows caps
-  const MAX_CHUNKS = 20; // safety valve
-
-  try {
-    const collected: {
-      puzzle_date: string | null;
-      source_name: string | null;
-    }[] = [];
-    const monthKeys = new Set<string>();
-
-    let offset = 0;
-    let lastMonthKey: string | null = null;
-
-    for (let i = 0; i < MAX_CHUNKS; i++) {
-      const res = await supabase
-        .from('v_search_results_pretty')
-        .select('puzzle_date, source_name')
-        .eq('source_slug', source)
-        .order('puzzle_date', { ascending: false })
-        .range(offset, offset + CHUNK_SIZE - 1)
-        .abortSignal(controller.signal);
-
-      if (res.error) {
-        console.error(res.error);
-        break;
-      }
-
-      const chunk = res.data ?? [];
-      if (chunk.length === 0) break;
-
-      collected.push(...chunk);
-
-      // track months we've seen so far
-      for (const r of chunk) {
-        if (!r.puzzle_date) continue;
-        const mk = r.puzzle_date.slice(0, 7);
-        monthKeys.add(mk);
-      }
-
-      // remember the month of the last row we fetched
-      const lastDate = chunk[chunk.length - 1]?.puzzle_date ?? null;
-      lastMonthKey = lastDate ? lastDate.slice(0, 7) : lastMonthKey;
-
-      // If we already have enough months, we *might* stop —
-      // but we must ensure we fetched the FULL last visible month,
-      // otherwise you get "October only shows a few dates".
-      if (monthKeys.size >= monthsNeeded) {
-        // determine the oldest month we need to fully include on this page
-        const monthsSorted = Array.from(monthKeys).sort().reverse();
-        const startIdx = (page - 1) * MONTHS_PER_PAGE;
-        const endIdx = startIdx + MONTHS_PER_PAGE - 1;
-        const oldestVisibleMonth = monthsSorted[endIdx];
-
-        // keep fetching while we're still inside that oldest visible month
-        // (meaning we might have only gotten part of it so far)
-        if (
-          lastMonthKey &&
-          oldestVisibleMonth &&
-          lastMonthKey === oldestVisibleMonth
-        ) {
-          offset += CHUNK_SIZE;
-          continue;
-        }
-
-        // otherwise we're safely past the oldest visible month → stop
-        break;
-      }
-
-      offset += CHUNK_SIZE;
-    }
-
-    data = collected;
-  } catch (err) {
-    console.error('Supabase timeout @daily source:', err);
-  } finally {
-    clearTimeout(timeout);
+  if (sourceError) {
+    console.error(
+      '[SourceIndexPage] source lookup error:',
+      JSON.stringify(sourceError, null, 2),
+    );
+    notFound();
   }
+
+  if (!sourceRow) {
+    notFound();
+  }
+
+  const { data: puzzleDaysData, error: puzzleDaysError } = await supabase
+    .from('puzzle_day')
+    .select('puzzle_date')
+    .eq('source_id', sourceRow.id)
+    .order('puzzle_date', { ascending: false });
+
+  if (puzzleDaysError) {
+    console.error(
+      '[SourceIndexPage] puzzle_day error:',
+      JSON.stringify(puzzleDaysError, null, 2),
+    );
+    notFound();
+  }
+
+  const data = (puzzleDaysData ?? []).map((r) => ({
+    puzzle_date: r.puzzle_date,
+    source_name: sourceRow.name,
+  }));
 
   const sourceName = resolveSourceName(source, data[0]?.source_name);
 
@@ -386,8 +336,6 @@ export default async function SourceIndexPage({
       a: `You can find daily ${sourceName} crossword answers on this page, organized by date for easy browsing.`,
     },
   ];
-
-  console.log('months:', months);
 
   // Breadcrumb
   const breadcrumb = buildBreadcrumb([
