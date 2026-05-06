@@ -8,8 +8,8 @@ import Link from 'next/link';
 import { buildBreadcrumb } from '@/lib/schema';
 import { resolveSourceName, getSourceDisplay } from '@/lib/sourceDisplay';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// export const dynamic = 'force-dynamic';
+export const revalidate = 86400; // 24 hours
 export const dynamicParams = true;
 
 /* -------------------------------
@@ -171,7 +171,7 @@ export default async function DailyAnswersPage({ params }: PageParams) {
     puzzle_date: r.puzzle_date,
   }));
 
-  console.log(rows[0]);
+  // console.log(rows[0]);
 
   const sourceName = resolveSourceName(source, rows[0]?.source_name);
   const heroKey = `${source}/${isoDate}`;
