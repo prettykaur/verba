@@ -194,22 +194,29 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
           Popular crossword patterns
         </h2>
 
-        <div className="flex flex-wrap gap-1 text-sm">
-          <Link href="/pattern/_A_ER" className="verba-link text-verba-blue">
-            _A_ER words
-          </Link>
-          {' · '}
-          <Link href="/pattern/__ING" className="verba-link text-verba-blue">
-            Words ending in ING
-          </Link>
-          {' · '}
-          <Link href="/pattern/A____" className="verba-link text-verba-blue">
-            5-letter words starting with A
-          </Link>
-          {' · '}
-          <Link href="/pattern/__ED" className="verba-link text-verba-blue">
-            Words ending in ED
-          </Link>
+        <div className="flex flex-wrap gap-2 text-sm">
+          {[
+            'A____',
+            'S____',
+            'T____',
+            'C____',
+            'R____',
+            'P____',
+            'AR___',
+            'RE___',
+            'ST___',
+            'TR___',
+            'IN___',
+            'CO___',
+          ].map((pattern) => (
+            <Link
+              key={pattern}
+              href={`/pattern/${encodeURIComponent(pattern)}`}
+              className="btn-press btn-marigold-hover rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-verba-blue"
+            >
+              {pattern}
+            </Link>
+          ))}
         </div>
       </div>
 
