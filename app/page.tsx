@@ -35,6 +35,21 @@ const TODAYS_PUZZLES = [
   },
 ] as const;
 
+const POPULAR_PATTERNS = [
+  { label: '5-letter words starting with A', pattern: 'A____' },
+  { label: '5-letter words starting with S', pattern: 'S____' },
+  { label: '5-letter words starting with T', pattern: 'T____' },
+  { label: '5-letter words starting with C', pattern: 'C____' },
+  { label: '5-letter words starting with R', pattern: 'R____' },
+  { label: '5-letter words starting with P', pattern: 'P____' },
+  { label: 'Words starting with AR', pattern: 'AR___' },
+  { label: 'Words starting with RE', pattern: 'RE___' },
+  { label: 'Words starting with ST', pattern: 'ST___' },
+  { label: 'Words starting with TR', pattern: 'TR___' },
+  { label: 'Words starting with IN', pattern: 'IN___' },
+  { label: 'Words starting with CO', pattern: 'CO___' },
+];
+
 export default function HomePage() {
   return (
     <>
@@ -124,6 +139,32 @@ export default function HomePage() {
               </span>{' '}
               to instantly find possible matches from today’s puzzles.
             </p>
+          </CardBody>
+        </Card>
+      </section>
+
+      <section className="mt-12 space-y-3">
+        <h2 className="text-brand-ink text-lg font-semibold">
+          Popular Crossword Patterns
+        </h2>
+
+        <Card>
+          <CardBody>
+            <p className="mb-3 text-sm text-slate-600">
+              Browse common crossword answer patterns by known letters.
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {POPULAR_PATTERNS.map((item) => (
+                <Link
+                  key={item.pattern}
+                  href={`/pattern/${encodeURIComponent(item.pattern)}`}
+                  className="btn-press btn-marigold-hover rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-verba-blue"
+                >
+                  {item.pattern}
+                </Link>
+              ))}
+            </div>
           </CardBody>
         </Card>
       </section>
