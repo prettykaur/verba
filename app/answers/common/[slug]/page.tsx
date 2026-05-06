@@ -142,6 +142,40 @@ function generateExplanation(answer: string, len: number) {
 }
 
 /* =========================
+   Related Patterns Helper
+========================= */
+
+function getRelatedPatterns(answer: string) {
+  const key = answer.toUpperCase();
+  const len = key.length;
+
+  if (len < 3) return [];
+
+  const patterns = [
+    {
+      label: `${len}-letter answers starting with ${key[0]}`,
+      pattern: `${key[0]}${'_'.repeat(len - 1)}`,
+    },
+  ];
+
+  if (len >= 4) {
+    patterns.push({
+      label: `${len}-letter answers starting with ${key.slice(0, 2)}`,
+      pattern: `${key.slice(0, 2)}${'_'.repeat(len - 2)}`,
+    });
+  }
+
+  if (len >= 4) {
+    patterns.push({
+      label: `${len}-letter answers like ${key[0]}${'_'.repeat(len - 2)}${key[len - 1]}`,
+      pattern: `${key[0]}${'_'.repeat(len - 2)}${key[len - 1]}`,
+    });
+  }
+
+  return patterns;
+}
+
+/* =========================
    Page
 ========================= */
 
@@ -229,6 +263,8 @@ export default async function CommonAnswerPage({ params }: PageProps) {
       count: val.count,
     }))
     .sort((a, b) => b.count - a.count);
+
+  const relatedPatterns = getRelatedPatterns(stats.answer_key);
 
   /* ===== FAQ Schema ===== */
 
@@ -353,6 +389,30 @@ export default async function CommonAnswerPage({ params }: PageProps) {
           </div>
         </div>
       </header>
+
+      {/* Related Patterns */}
+      {relatedPatterns.length > 0 && (
+        <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+          <h2 className="font-semibold text-slate-900">Related patterns</h2>
+          <p className="mt-1 text-slate-600">
+            Browse crossword answers with similar letter patterns to{' '}
+            <strong>{stats.answer_key}</strong>.
+          </p>
+
+          <ul className="mt-3 space-y-1">
+            {relatedPatterns.map((p) => (
+              <li key={p.pattern}>
+                <Link
+                  href={`/pattern/${encodeURIComponent(p.pattern)}`}
+                  className="verba-link text-verba-blue"
+                >
+                  {p.label} →
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Explanation */}
       <section className="rounded-xl border bg-white p-4 text-sm text-slate-700">
