@@ -110,6 +110,15 @@ export default async function CommonAnswersByLength({
 
   const lengths = [3, 4, 5, 6, 7];
 
+  const patternLetters = ['A', 'E', 'S', 'T', 'R', 'O'];
+
+  const patternLength = parsed.type === 'eq' ? parsed.value : 8;
+
+  const browsePatterns = patternLetters.map((letter) => ({
+    label: `${patternLength}-letter answers starting with ${letter}`,
+    pattern: `${letter}${'_'.repeat(patternLength - 1)}`,
+  }));
+
   return (
     <div className="space-y-6">
       <Link
@@ -154,6 +163,26 @@ export default async function CommonAnswersByLength({
         >
           8+ letters
         </Link>
+      </section>
+
+      {/* Pattern Links */}
+      <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+        <h2 className="font-semibold text-slate-900">Browse by pattern</h2>
+        <p className="mt-1 text-slate-600">
+          Explore {lengthLabel} crossword answers by starting letter pattern.
+        </p>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {browsePatterns.map((p) => (
+            <Link
+              key={p.pattern}
+              href={`/pattern/${encodeURIComponent(p.pattern)}`}
+              className="btn-press btn-marigold-hover rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-verba-blue"
+            >
+              {p.pattern}
+            </Link>
+          ))}
+        </div>
       </section>
 
       {/* RESULT COUNT */}
