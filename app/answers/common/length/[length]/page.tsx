@@ -4,7 +4,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
-import { getCommonAnswers, PAGE_SIZE } from '@/lib/getCommonAnswers';
+import { PAGE_SIZE } from '@/lib/getCommonAnswers';
+import { supabase } from '@/lib/supabase';
 
 export const revalidate = 3600;
 
@@ -34,10 +35,6 @@ function parseLengthParam(param: string) {
 
   return { type: 'eq' as const, value: Number(match[1]) };
 }
-
-/* =========================
-   Metadata
-========================= */
 
 export async function generateMetadata({
   params,
@@ -72,10 +69,6 @@ export async function generateMetadata({
   };
 }
 
-/* =========================
-   Page
-========================= */
-
 export default async function CommonAnswersByLength({
   params,
   searchParams,
@@ -87,23 +80,46 @@ export default async function CommonAnswersByLength({
   const sp = (await searchParams) ?? {};
   const page = Math.max(1, Number(sp.page ?? 1));
 
-  const { rows, total } = await getCommonAnswers({
-    length: parsed,
-    page,
-  });
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-  if (!total || total < 1) {
+  let query = supabase
+    .from('v_answer_stats')
+    .select(
+      'answer_key, answer_len, occurrence_count, last_seen, last_seen_source_slug, last_seen_occurrence_id',
+    )
+    .order('occurrence_count', { ascending: false })
+    .order('last_seen', { ascending: false });
+
+  if (parsed.type === 'eq') {
+    query = query.eq('answer_len', parsed.value);
+  } else {
+    query = query.gte('answer_len', parsed.value);
+  }
+
+  const { data, error } = await query.range(from, to + 1);
+
+  if (error) {
+    console.error(
+      '[common length page] Supabase error:',
+      JSON.stringify(error, null, 2),
+    );
     notFound();
   }
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const fetchedRows = (data ?? []) as CommonAnswerRow[];
+  const hasNext = fetchedRows.length > PAGE_SIZE;
+  const rows = fetchedRows.slice(0, PAGE_SIZE);
 
-  if (page > totalPages) {
+  if (rows.length === 0) {
     notFound();
   }
 
-  const from = (page - 1) * PAGE_SIZE + 1;
-  const to = total ? Math.min(page * PAGE_SIZE, total) : null;
+  const hasPrev = page > 1;
+
+  const start = from + 1;
+  const end = from + rows.length;
+  const approxTotal = hasNext ? `${end}+` : end;
 
   const lengthLabel =
     parsed.type === 'eq' ? `${parsed.value}-letter` : `${parsed.value}+ letter`;
@@ -111,7 +127,6 @@ export default async function CommonAnswersByLength({
   const lengths = [3, 4, 5, 6, 7];
 
   const patternLetters = ['A', 'E', 'S', 'T', 'R', 'O'];
-
   const patternLength = parsed.type === 'eq' ? parsed.value : 8;
 
   const browsePatterns = patternLetters.map((letter) => ({
@@ -165,7 +180,6 @@ export default async function CommonAnswersByLength({
         </Link>
       </section>
 
-      {/* Pattern Links */}
       <section className="rounded-xl border bg-slate-50 p-4 text-sm">
         <h2 className="font-semibold text-slate-900">Browse by pattern</h2>
         <p className="mt-1 text-slate-600">
@@ -185,18 +199,15 @@ export default async function CommonAnswersByLength({
         </div>
       </section>
 
-      {/* RESULT COUNT */}
-      {total && total > 0 && (
-        <div className="text-sm text-slate-600">
-          Showing <strong>{from}</strong> to <strong>{to}</strong> of{' '}
-          <strong>{total.toLocaleString()}</strong> answers
-        </div>
-      )}
+      <div className="text-sm text-slate-600">
+        Showing <strong>{start.toLocaleString()}</strong> to{' '}
+        <strong>{end.toLocaleString()}</strong> of{' '}
+        <strong>{approxTotal}</strong> answers
+      </div>
 
-      {/* RESULTS */}
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
-          {rows.map((r: CommonAnswerRow) => {
+          {rows.map((r) => {
             const slug = r.answer_key.toLowerCase();
             const lastSeen = r.last_seen
               ? formatPuzzleDateLong(String(r.last_seen).slice(0, 10))
@@ -252,36 +263,31 @@ export default async function CommonAnswersByLength({
         </ul>
       </section>
 
-      {/* PAGINATION */}
-      {totalPages && totalPages > 1 && (
-        <nav className="flex items-center justify-between text-sm">
-          {page > 1 ? (
-            <Link
-              href={`/answers/common/length/${length}?page=${page - 1}`}
-              className="verba-link text-verba-blue"
-            >
-              ← Previous
-            </Link>
-          ) : (
-            <span />
-          )}
+      <nav className="flex items-center justify-between text-sm">
+        {hasPrev ? (
+          <Link
+            href={`/answers/common/length/${length}?page=${page - 1}`}
+            className="verba-link text-verba-blue"
+          >
+            ← Previous
+          </Link>
+        ) : (
+          <span />
+        )}
 
-          <span className="text-slate-500">
-            Page {page} of {totalPages}
-          </span>
+        <span className="text-slate-500">Page {page}</span>
 
-          {page < totalPages ? (
-            <Link
-              href={`/answers/common/length/${length}?page=${page + 1}`}
-              className="verba-link text-verba-blue"
-            >
-              Next →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      )}
+        {hasNext ? (
+          <Link
+            href={`/answers/common/length/${length}?page=${page + 1}`}
+            className="verba-link text-verba-blue"
+          >
+            Next →
+          </Link>
+        ) : (
+          <span />
+        )}
+      </nav>
     </div>
   );
 }
