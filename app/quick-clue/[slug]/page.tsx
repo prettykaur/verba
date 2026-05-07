@@ -468,10 +468,45 @@ export default async function QuickCluePage({ params }: PageProps) {
         </h2>
 
         <ul className="mt-2 list-disc space-y-1 pl-4">
-          {letterSearchHref && (
+          <li>
+            <a href="/answers/common" className="verba-link text-verba-blue">
+              Browse the most common crossword answers
+            </a>
+          </li>
+
+          {answerLen && (
             <li>
-              <a href={letterSearchHref} className="verba-link text-verba-blue">
-                Looking for another {answerLen}-letter crossword answer?
+              <a
+                href={`/answers/common/length/${answerLen}-letter`}
+                className="verba-link text-verba-blue"
+              >
+                Browse {answerLen}-letter crossword answers
+              </a>
+            </li>
+          )}
+
+          {answerLen && answers[0]?.answer && (
+            <li>
+              <a
+                href={`/answers/common/starts/${answers[0].answer[0].toUpperCase()}/length/${answerLen}-letter`}
+                className="verba-link text-verba-blue"
+              >
+                Browse {answerLen}-letter answers starting with{' '}
+                {answers[0].answer[0].toUpperCase()}
+              </a>
+            </li>
+          )}
+
+          {answerLen && answers[0]?.answer && (
+            <li>
+              <a
+                href={`/pattern/${encodeURIComponent(
+                  `${answers[0].answer[0].toUpperCase()}${'_'.repeat(answerLen - 1)}`,
+                )}`}
+                className="verba-link text-verba-blue"
+              >
+                Browse answers matching {answers[0].answer[0].toUpperCase()}
+                {'_'.repeat(answerLen - 1)}
               </a>
             </li>
           )}
@@ -479,18 +514,7 @@ export default async function QuickCluePage({ params }: PageProps) {
           {tokenSearchHref && (
             <li>
               <a href={tokenSearchHref} className="verba-link text-verba-blue">
-                Browse all crossword clues containing “{primaryToken}”
-              </a>
-            </li>
-          )}
-
-          {secondaryToken && secondaryToken !== primaryToken && (
-            <li>
-              <a
-                href={`/search?q=${encodeURIComponent(secondaryToken)}`}
-                className="verba-link text-verba-blue"
-              >
-                Browse all crossword clues containing “{secondaryToken}”
+                Browse crossword clues containing “{primaryToken}”
               </a>
             </li>
           )}
