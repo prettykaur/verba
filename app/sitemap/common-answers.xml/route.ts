@@ -76,17 +76,10 @@ export async function GET() {
   );
 
   // Letter + length combinations
-  const lengths = [
-    '3-letter',
-    '4-letter',
-    '5-letter',
-    '6-letter',
-    '7-letter',
-    '8-plus',
-  ];
+  const indexedLetterLengths = ['5-letter', '6-letter'];
 
   const letterLengthUrls = letters.flatMap((L) =>
-    lengths.map(
+    indexedLetterLengths.map(
       (len) => `
   <url>
     <loc>${BASE_URL}/answers/common/starts/${L}/length/${len}</loc>
