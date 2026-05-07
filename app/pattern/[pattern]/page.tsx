@@ -14,10 +14,6 @@ type Props = {
   searchParams?: Promise<{ page?: string }>;
 };
 
-/* =========================
-   Metadata
-========================= */
-
 export async function generateMetadata({
   params,
   searchParams,
@@ -27,11 +23,12 @@ export async function generateMetadata({
 
   const rawPattern = decodeURIComponent(pattern).toUpperCase();
   const page = Math.max(1, Number(sp.page ?? 1));
+  const encodedPattern = encodeURIComponent(rawPattern);
 
   const canonical =
     page === 1
-      ? `${BASE_URL}/pattern/${pattern}`
-      : `${BASE_URL}/pattern/${pattern}?page=${page}`;
+      ? `${BASE_URL}/pattern/${encodedPattern}`
+      : `${BASE_URL}/pattern/${encodedPattern}?page=${page}`;
 
   return {
     title: `Crossword answers for pattern ${rawPattern} | Verba`,
@@ -43,10 +40,6 @@ export async function generateMetadata({
     },
   };
 }
-
-/* =========================
-   Page
-========================= */
 
 export default async function PatternPage({ params, searchParams }: Props) {
   const { pattern } = await params;
@@ -62,11 +55,11 @@ export default async function PatternPage({ params, searchParams }: Props) {
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  // Extract first fixed letter
   const firstLetterMatch = rawPattern.match(/^[A-Z]/);
   const firstLetter = firstLetterMatch ? firstLetterMatch[0] : null;
+  const patternLength = rawPattern.length;
+  const encodedPattern = encodeURIComponent(rawPattern);
 
-  // If no prefix, pattern is too broad
   if (!firstLetter) {
     return (
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
@@ -86,25 +79,52 @@ export default async function PatternPage({ params, searchParams }: Props) {
           This pattern is too broad and would return too many results. Try a
           more specific pattern that starts with a letter.
         </p>
+
+        <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+          <h2 className="font-semibold text-slate-900">
+            Explore crossword answer lists
+          </h2>
+          <ul className="mt-2 space-y-1">
+            <li>
+              <Link
+                href="/answers/common"
+                className="verba-link text-verba-blue"
+              >
+                Most common crossword answers →
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/answers/common/length/5-letter"
+                className="verba-link text-verba-blue"
+              >
+                5-letter crossword answers →
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/answers/common/length/6-letter"
+                className="verba-link text-verba-blue"
+              >
+                6-letter crossword answers →
+              </Link>
+            </li>
+          </ul>
+        </section>
       </main>
     );
   }
 
-  // Convert pattern
   const sqlPattern = rawPattern.replaceAll('*', '%').replaceAll('?', '_');
 
   let query = supabase
     .from('v_answer_stats')
     .select('answer_key, answer_len, occurrence_count, last_seen')
-    .order('occurrence_count', { ascending: false });
-
-  // Prefix filler
-  if (firstLetter) {
-    query = query.ilike('answer_key', `${firstLetter}%`);
-  }
-
-  // Apply pattern after narrowing dataset
-  query = query.like('answer_key', sqlPattern).range(from, to + 1);
+    .eq('answer_len', patternLength)
+    .ilike('answer_key', `${firstLetter}%`)
+    .like('answer_key', sqlPattern)
+    .order('occurrence_count', { ascending: false })
+    .range(from, to + 1);
 
   const { data, error } = await query;
 
@@ -120,7 +140,6 @@ export default async function PatternPage({ params, searchParams }: Props) {
 
   return (
     <main className="space-y-6">
-      {/* BREADCRUMBS */}
       <nav className="text-xs text-slate-500">
         <Link href="/" className="verba-link text-verba-blue">
           Home
@@ -129,7 +148,6 @@ export default async function PatternPage({ params, searchParams }: Props) {
         <span>{rawPattern}</span>
       </nav>
 
-      {/* HEADER */}
       <h1 className="text-2xl font-bold">
         Crossword answers for pattern {rawPattern}
       </h1>
@@ -140,12 +158,61 @@ export default async function PatternPage({ params, searchParams }: Props) {
         appear in puzzles.
       </p>
 
-      {/* RESULTS COUNT */}
+      {/* Cross-links */}
+      <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+        <h2 className="font-semibold text-slate-900">
+          Explore related answer lists
+        </h2>
+
+        <ul className="mt-2 space-y-1">
+          <li>
+            <Link href="/answers/common" className="verba-link text-verba-blue">
+              Most common crossword answers →
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href={`/answers/common/length/${patternLength}-letter`}
+              className="verba-link text-verba-blue"
+            >
+              {patternLength}-letter crossword answers →
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href={`/answers/common/starts/${firstLetter}`}
+              className="verba-link text-verba-blue"
+            >
+              Answers starting with {firstLetter} →
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href={`/answers/common/starts/${firstLetter}/length/${patternLength}-letter`}
+              className="verba-link text-verba-blue"
+            >
+              {patternLength}-letter answers starting with {firstLetter} →
+            </Link>
+          </li>
+
+          <li>
+            <Link
+              href={`/search?q=${encodedPattern}`}
+              className="verba-link text-verba-blue"
+            >
+              Search this pattern →
+            </Link>
+          </li>
+        </ul>
+      </section>
+
       <p className="text-sm text-slate-600">
         Showing <strong>{results.length}</strong> matching answers
       </p>
 
-      {/* RESULTS */}
       <section className="rounded-xl border bg-white">
         <ul className="divide-y">
           {results.map((row) => {
@@ -183,11 +250,10 @@ export default async function PatternPage({ params, searchParams }: Props) {
         </ul>
       </section>
 
-      {/* PAGINATION */}
       <nav className="flex items-center justify-between text-sm">
         {hasPrev ? (
           <Link
-            href={`/pattern/${rawPattern}?page=${page - 1}`}
+            href={`/pattern/${encodedPattern}?page=${page - 1}`}
             className="verba-link text-verba-blue"
           >
             ← Previous
@@ -198,7 +264,7 @@ export default async function PatternPage({ params, searchParams }: Props) {
 
         {hasNext ? (
           <Link
-            href={`/pattern/${rawPattern}?page=${page + 1}`}
+            href={`/pattern/${encodedPattern}?page=${page + 1}`}
             className="verba-link text-verba-blue"
           >
             Next →
