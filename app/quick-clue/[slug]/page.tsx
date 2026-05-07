@@ -333,11 +333,10 @@ export default async function QuickCluePage({ params }: PageProps) {
       </h1>
 
       <p className="text-slate-600">
-        Below are possible crossword answers for the clue{' '}
-        <strong>{phrase}</strong>
-        {answerLen
-          ? `, all with ${answerLen} letters.`
-          : ', based on historical puzzle data.'}
+        Looking for{' '}
+        {answerLen ? `a ${answerLen}-letter word` : 'a crossword answer'} for{' '}
+        <strong>“{phrase}”</strong>? Here are the most likely crossword answers
+        based on real puzzle data, including frequency and recent appearances.
       </p>
 
       <section className="rounded-xl border bg-white p-4">
