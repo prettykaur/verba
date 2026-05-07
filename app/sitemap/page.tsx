@@ -5,8 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { formatPuzzleDateLong } from '@/lib/formatDate';
 import { resolveSourceName } from '@/lib/sourceDisplay';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 86400;
 
 export default async function HtmlSitemapPage() {
   /* -----------------------------
