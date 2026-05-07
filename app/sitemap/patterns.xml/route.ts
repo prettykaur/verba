@@ -37,12 +37,15 @@ const patterns = [
 ];
 
 export async function GET() {
+  const today = new Date().toISOString().slice(0, 10);
+
   const urls = patterns
     .map((p) => {
       const loc = `${BASE_URL}/pattern/${encodeURIComponent(p)}`;
       return `
         <url>
           <loc>${loc}</loc>
+          <lastmod>${today}</lastmod>
           <changefreq>weekly</changefreq>
           <priority>0.6</priority>
         </url>`;
