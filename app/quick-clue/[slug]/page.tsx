@@ -296,9 +296,6 @@ export default async function QuickCluePage({ params }: PageProps) {
 
   const tokensForLinks = phraseToTokens(phrase);
   const primaryToken = tokensForLinks[0] ?? null;
-  const secondaryToken = tokensForLinks.length > 1 ? tokensForLinks[1] : null;
-
-  const letterSearchHref = answerLen ? `/search?len=${answerLen}` : null;
 
   const tokenSearchHref = primaryToken
     ? `/search?q=${encodeURIComponent(primaryToken)}`

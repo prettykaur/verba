@@ -117,7 +117,7 @@ export default async function PatternPage({ params, searchParams }: Props) {
 
   const sqlPattern = rawPattern.replaceAll('*', '%').replaceAll('?', '_');
 
-  let query = supabase
+  const query = supabase
     .from('v_answer_stats')
     .select('answer_key, answer_len, occurrence_count, last_seen')
     .eq('answer_len', patternLength)
