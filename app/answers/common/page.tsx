@@ -126,9 +126,9 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
             : `Most Common Crossword Answers`}
         </h1>
         <p className="max-w-3xl text-slate-600">
-          Some crossword answers appear far more frequently than others. These
-          entries are often short, vowel-heavy words that help constructors fill
-          grids smoothly.
+          These are the most common crossword answers based on real puzzle data.
+          Browse frequent crossword fill by answer length, starting letter, and
+          usage frequency to spot familiar patterns faster.
         </p>
         <div className="pt-4 text-sm text-slate-600">
           Browse by:{' '}
