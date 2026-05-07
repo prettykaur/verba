@@ -7,6 +7,7 @@ import { RevealAnswer } from '@/components/RevealAnswer';
 import type { Metadata } from 'next';
 import { buildBreadcrumb } from '@/lib/schema';
 import { resolveSourceName } from '@/lib/sourceDisplay';
+import Link from 'next/link';
 
 export const revalidate = 86400;
 
@@ -424,7 +425,6 @@ export default async function QuickCluePage({ params }: PageProps) {
 
                   <span aria-hidden>·</span>
 
-                  {/* ✅ CANONICAL, SAFE LINK */}
                   <a
                     href={`/clue/${encodeURIComponent(a.primaryClueSlug)}?occ=${a.primaryOccurrenceId}`}
                     className="verba-link text-verba-blue"
@@ -469,53 +469,58 @@ export default async function QuickCluePage({ params }: PageProps) {
 
         <ul className="mt-2 list-disc space-y-1 pl-4">
           <li>
-            <a href="/answers/common" className="verba-link text-verba-blue">
+            <Link href="/answers/common" className="verba-link text-verba-blue">
               Browse the most common crossword answers
-            </a>
+            </Link>
           </li>
 
           {answerLen && (
             <li>
-              <a
+              <Link
                 href={`/answers/common/length/${answerLen}-letter`}
                 className="verba-link text-verba-blue"
               >
                 Browse {answerLen}-letter crossword answers
-              </a>
+              </Link>
             </li>
           )}
 
           {answerLen && answers[0]?.answer && (
             <li>
-              <a
+              <Link
                 href={`/answers/common/starts/${answers[0].answer[0].toUpperCase()}/length/${answerLen}-letter`}
                 className="verba-link text-verba-blue"
               >
                 Browse {answerLen}-letter answers starting with{' '}
                 {answers[0].answer[0].toUpperCase()}
-              </a>
+              </Link>
             </li>
           )}
 
           {answerLen && answers[0]?.answer && (
             <li>
-              <a
+              <Link
                 href={`/pattern/${encodeURIComponent(
-                  `${answers[0].answer[0].toUpperCase()}${'_'.repeat(answerLen - 1)}`,
+                  `${answers[0].answer[0].toUpperCase()}${'_'.repeat(
+                    answerLen - 1,
+                  )}`,
                 )}`}
                 className="verba-link text-verba-blue"
               >
                 Browse answers matching {answers[0].answer[0].toUpperCase()}
                 {'_'.repeat(answerLen - 1)}
-              </a>
+              </Link>
             </li>
           )}
 
           {tokenSearchHref && (
             <li>
-              <a href={tokenSearchHref} className="verba-link text-verba-blue">
+              <Link
+                href={tokenSearchHref}
+                className="verba-link text-verba-blue"
+              >
                 Browse crossword clues containing “{primaryToken}”
-              </a>
+              </Link>
             </li>
           )}
         </ul>
