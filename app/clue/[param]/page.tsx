@@ -11,7 +11,6 @@ import { ClueFAQ } from '@/components/ClueFAQ';
 import { encodeQuickClueSlug } from '@/lib/quickClueSlug';
 import { resolveSourceName } from '@/lib/sourceDisplay';
 
-// export const dynamic = 'force-dynamic';
 export const revalidate = 86400; // 24 hours
 
 /* ---------------------------------------------------------
@@ -155,7 +154,7 @@ async function fetchOccurrenceById(
   }
   if (!data) return null;
 
-  // ✅ these are OBJECTS for many-to-one relations
+  // these are OBJECTS for many-to-one relations
   const puzzleDay =
     (data.puzzle_day as SupabasePuzzleDay[] | null)?.[0] ?? null;
   const puzzleSource = puzzleDay?.puzzle_source?.[0] ?? null;
@@ -401,9 +400,16 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${row.clue_text} — Crossword Clue Answer | Verba`;
+  const displayAnswer = (row.answer_pretty ?? row.answer ?? '').trim();
+  const answerLength = cleanAnswer(displayAnswer).length;
+
+  const title =
+    answerLength > 0
+      ? `${row.clue_text} crossword clue answer (${answerLength} letters) | Verba`
+      : `${row.clue_text} crossword clue answer | Verba`;
+
   const sourceName = resolveSourceName(row.source_slug, row.source_name);
-  const description = `See the answer for "${row.clue_text}" from the ${sourceName} crossword.`;
+  const description = `Find the answer to "${row.clue_text}" crossword clue from the ${sourceName} crossword. Possible answers ranked by frequency and recent usage.`;
 
   return {
     title,
@@ -547,6 +553,13 @@ export default async function CluePage({ params, searchParams }: PageProps) {
         )}
       </div>
 
+      {/* Intro text */}
+      <p className="mt-3 max-w-3xl text-slate-600">
+        Looking for the answer to “{row.clue_text}” crossword clue? This page
+        shows the most likely answers based on real crossword usage, including
+        frequency and recent appearances.
+      </p>
+
       {/* Solve card wrapper (restores formatting) */}
       <section className="mt-6 rounded-xl border bg-white p-6">
         <h2 className="text-base font-semibold text-slate-900">
@@ -651,6 +664,57 @@ export default async function CluePage({ params, searchParams }: PageProps) {
           </p>
         </section>
       )}
+
+      {/* Related crossword answers */}
+      <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+        <h2 className="font-semibold text-slate-900">
+          Related crossword answers
+        </h2>
+
+        <ul className="mt-2 space-y-1">
+          <li>
+            <Link href="/answers/common" className="verba-link text-verba-blue">
+              Most common crossword answers →
+            </Link>
+          </li>
+
+          {letterCount > 0 && (
+            <li>
+              <Link
+                href={`/answers/common/length/${letterCount}-letter`}
+                className="verba-link text-verba-blue"
+              >
+                {letterCount}-letter crossword answers →
+              </Link>
+            </li>
+          )}
+
+          {cleaned && letterCount > 1 && (
+            <li>
+              <Link
+                href={`/pattern/${encodeURIComponent(
+                  `${cleaned[0]}${'_'.repeat(letterCount - 1)}`,
+                )}`}
+                className="verba-link text-verba-blue"
+              >
+                Answers matching {cleaned[0]}
+                {'_'.repeat(letterCount - 1)} →
+              </Link>
+            </li>
+          )}
+
+          {cleaned && letterCount > 2 && (
+            <li>
+              <Link
+                href={`/answers/common/starts/${cleaned[0]}/length/${letterCount}-letter`}
+                className="verba-link text-verba-blue"
+              >
+                {letterCount}-letter answers starting with {cleaned[0]} →
+              </Link>
+            </li>
+          )}
+        </ul>
+      </section>
 
       {/* Related clues */}
       <RelatedCluesList
