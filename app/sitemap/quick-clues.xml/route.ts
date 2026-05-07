@@ -33,6 +33,7 @@ export async function GET() {
     `,
     )
     .not('answer_len', 'is', null)
+    .order('puzzle_date', { ascending: false })
     .limit(5000); // safety cap
 
   if (error || !data) {
