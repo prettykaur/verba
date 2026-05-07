@@ -220,6 +220,39 @@ export default async function CommonAnswersHub({ searchParams }: PageProps) {
         </div>
       </div>
 
+      {/* Starts With + Length Block */}
+      <section className="rounded-xl border bg-slate-50 p-4 text-sm">
+        <h2 className="font-semibold text-slate-900">
+          Browse 5- and 6-letter answers by starting letter
+        </h2>
+
+        <p className="mt-1 text-slate-600">
+          Explore common crossword answers by length and first letter.
+        </p>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {[5, 6].map((n) => (
+            <div key={n}>
+              <div className="mb-2 text-xs font-medium text-slate-500">
+                {n}-letter answers
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) => (
+                  <Link
+                    key={`${n}-${letter}`}
+                    href={`/answers/common/starts/${letter}/length/${n}-letter`}
+                    className="btn-press btn-marigold-hover rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-verba-blue"
+                  >
+                    {letter}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Top 10 Answers Block */}
       {showTop10 && top10.length > 0 && (
         <section className="rounded-xl border bg-slate-50 p-4">
