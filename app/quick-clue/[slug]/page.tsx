@@ -8,8 +8,7 @@ import type { Metadata } from 'next';
 import { buildBreadcrumb } from '@/lib/schema';
 import { resolveSourceName } from '@/lib/sourceDisplay';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 86400;
 
 type PageProps = {
   params: Promise<{ slug: string }>;
