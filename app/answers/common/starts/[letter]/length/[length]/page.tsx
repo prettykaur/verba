@@ -41,8 +41,11 @@ function parseLengthParam(param: string) {
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: PageProps): Promise<Metadata> {
   const { letter, length } = await params;
+  const sp = (await searchParams) ?? {};
+  const page = Math.max(1, Number(sp.page ?? 1));
 
   const L = letter.toUpperCase();
 
@@ -58,11 +61,21 @@ export async function generateMetadata({
   const lengthLabel =
     parsed.type === 'eq' ? `${parsed.value}-Letter` : `${parsed.value}+ Letter`;
 
+  const canonical =
+    page === 1
+      ? `https://tryverba.com/answers/common/starts/${L}/length/${length}`
+      : `https://tryverba.com/answers/common/starts/${L}/length/${length}?page=${page}`;
+
+  const shouldIndex =
+    page === 1 && parsed.type === 'eq' && [5, 6].includes(parsed.value);
+
   return {
     title: `Common ${lengthLabel} Crossword Answers Starting With ${L} | Verba`,
-    description: `Browse ${lengthLabel.toLowerCase()} crossword answers that begin with ${L}.`,
-    alternates: {
-      canonical: `https://tryverba.com/answers/common/starts/${L}/length/${length}`,
+    description: `Browse ${lengthLabel.toLowerCase()} crossword answers that start with ${L}, sorted by frequency and last seen date.`,
+    alternates: { canonical },
+    robots: {
+      index: shouldIndex,
+      follow: true,
     },
   };
 }
