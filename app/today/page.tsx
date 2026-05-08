@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://tryverba.com/today' },
 };
 
+export const revalidate = 3600;
+
 const TODAY_SOURCES = [
   { slug: 'nyt-mini', active: true },
   { slug: 'nyt-crossword', active: true },
@@ -32,11 +34,11 @@ export default function TodayIndexPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-bold">Today’s Crossword Answers</h1>
+        <h1 className="text-2xl font-bold">Latest Crossword Answers</h1>
 
         <p className="text-slate-600">
-          Find today’s crossword clues and answers for <strong>{today}</strong>.
-          Select a puzzle source below to view the latest crossword solutions.
+          Find the latest available crossword clues and answers. Select a puzzle
+          source below to view the newest published solutions.
         </p>
       </header>
 
