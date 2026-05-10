@@ -13,7 +13,10 @@
     "ingest:nyt-mini:range": "tsx scripts/ingest/runNytMiniRange.ts",
     "ingest:nyt-crossword": "tsx scripts/ingest/runNytCrossword.ts",
     "ingest:nyt-crossword:date": "tsx scripts/ingest/runNytCrossword.ts",
-    "ingest:nyt-crossword:range": "tsx scripts/ingest/runNytCrosswordRange.ts"
+    "ingest:nyt-crossword:range": "tsx scripts/ingest/runNytCrosswordRange.ts",
+    "ingest:latimes": "tsx scripts/ingest/runLatimes.ts",
+    "ingest:latimes:date": "tsx scripts/ingest/runLatimes.ts",
+    "ingest:latimes:range": "tsx scripts/ingest/runLatimesRange.ts"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.32.1",
