@@ -6,6 +6,11 @@ import { ingestNytCrossword } from '@/scripts/ingest/nytCrossword';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
 export async function GET(req: Request) {
   const auth = req.headers.get('authorization');
 
@@ -17,14 +22,14 @@ export async function GET(req: Request) {
 
   try {
     results.mini = await ingestNytMini();
-  } catch (e: any) {
-    results.mini = { ok: false, error: e?.message ?? String(e) };
+  } catch (error: unknown) {
+    results.mini = { ok: false, error: getErrorMessage(error) };
   }
 
   try {
     results.crossword = await ingestNytCrossword();
-  } catch (e: any) {
-    results.crossword = { ok: false, error: e?.message ?? String(e) };
+  } catch (error: unknown) {
+    results.crossword = { ok: false, error: getErrorMessage(error) };
   }
 
   return NextResponse.json({
