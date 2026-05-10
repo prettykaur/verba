@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -60,162 +59,6 @@ function slugifyClue(clueText: string) {
 
 function normalizeAnswerToLetters(answerRaw: string): string {
   return answerRaw.replace(/[^A-Za-z]/g, '').toUpperCase();
-}
-
-function unscrambleRawc(rawc: string) {
-  const chars = rawc.split('');
-
-  function reverse(start: number, len: number) {
-    const end = Math.min(start + len, chars.length);
-
-    for (let l = start, r = end - 1; l < r; l++, r--) {
-      [chars[l], chars[r]] = [chars[r], chars[l]];
-    }
-  }
-
-  for (let n = 7; n < rawc.length; n += 26) {
-    let s = n;
-
-    let c = 10 + s < rawc.length ? 11 : rawc.length - s + 1;
-    reverse(s, c);
-    s += c;
-
-    c = 9 + s < rawc.length ? 10 : rawc.length - s + 1;
-    reverse(s, c);
-    s += c;
-
-    c = 9 + s < rawc.length ? 10 : rawc.length - s + 1;
-    reverse(s, c);
-    s += c;
-
-    c = 13 + s < rawc.length ? 14 : rawc.length - s + 1;
-    reverse(s, c);
-
-    n = s + c;
-  }
-
-  for (let n = 0; n < rawc.length; n += 64) {
-    const c = 6 + n < rawc.length ? 7 : rawc.length - n + 1;
-    reverse(n, c);
-    n += c;
-  }
-
-  for (let n = 52; n < rawc.length; n += 52) {
-    let s = n;
-
-    let c = 8 + s < rawc.length ? 9 : rawc.length - s + 1;
-    reverse(s, c);
-    s += c;
-
-    c = 9 + s < rawc.length ? 10 : rawc.length - s + 1;
-    reverse(s, c);
-
-    n = s + c;
-  }
-
-  return chars.join('');
-}
-
-function decodeRawc(rawc: string) {
-  const unscrambled = unscrambleRawc(rawc);
-  const decoded = Buffer.from(unscrambled, 'base64').toString('utf8');
-  return JSON.parse(decoded);
-}
-
-function parseParamsScript(html: string) {
-  const match = html.match(
-    /<script[^>]+id=["']params["'][^>]*>\s*([\s\S]*?)\s*<\/script>/,
-  );
-
-  if (!match) return null;
-
-  return JSON.parse(match[1]);
-}
-
-async function fetchPuzzleWithPlaywright(puzzleId: string, debug = false) {
-  const browser = await chromium.launch({
-    headless: false,
-  });
-
-  try {
-    const context = await browser.newContext({
-      viewport: {
-        width: 1440,
-        height: 1200,
-      },
-      userAgent:
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
-    });
-
-    const page = await context.newPage();
-
-    let capturedParams: any = null;
-
-    page.on('response', async (response) => {
-      try {
-        const url = response.url();
-
-        if (url.includes('/crossword') && url.includes(`id=${puzzleId}`)) {
-          const text = await response.text().catch(() => '');
-
-          const match = text.match(
-            /<script[^>]+id=["']params["'][^>]*>\s*([\s\S]*?)\s*<\/script>/,
-          );
-
-          if (match) {
-            const params = JSON.parse(match[1]);
-
-            if (params?.rawc) {
-              capturedParams = params;
-
-              if (debug) {
-                console.log('DEBUG captured rawc response');
-                console.log('DEBUG response URL:', url);
-              }
-            }
-          }
-        }
-      } catch {
-        // ignore
-      }
-    });
-
-    const uid = crypto.randomBytes(32).toString('hex');
-
-    const crosswordUrl =
-      `https://lat.amuselabs.com/lat/crossword` +
-      `?id=${puzzleId}` +
-      `&set=latimes` +
-      `&embed=1` +
-      `&style=1` +
-      `&picker=date-picker` +
-      `&uid=${uid}` +
-      `&src=https%3A%2F%2Fwww.latimes.com%2Fgames%2Fdaily-crossword`;
-
-    if (debug) {
-      console.log('DEBUG opening crossword:', crosswordUrl);
-    }
-
-    await page.goto(crosswordUrl, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
-
-    await page.waitForTimeout(12000);
-
-    if (!capturedParams?.rawc) {
-      const html = await page.content();
-
-      console.log('DEBUG FINAL HTML:');
-      console.log(html.slice(0, 5000));
-
-      throw new Error(`Could not capture rawc for ${puzzleId}`);
-    }
-
-    return capturedParams;
-  } finally {
-    await browser.close();
-  }
 }
 
 export async function ingestLatimes(
@@ -325,6 +168,9 @@ export async function ingestLatimes(
       {
         slug: SOURCE_SLUG,
         name: SOURCE_NAME,
+        url: 'https://www.latimes.com/games/daily-crossword',
+        puzzle_type_id: 1,
+        timezone: 'America/Los_Angeles',
       },
       { onConflict: 'slug' },
     );
