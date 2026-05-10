@@ -19,7 +19,7 @@ const TODAYS_PUZZLES = [
   },
   {
     slug: 'la-times',
-    active: false,
+    active: true,
   },
   {
     slug: 'the-guardian',
