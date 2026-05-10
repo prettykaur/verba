@@ -15,6 +15,7 @@ export const revalidate = 3600;
 const TODAY_SOURCES = [
   { slug: 'nyt-mini', active: true },
   { slug: 'nyt-crossword', active: true },
+  { slug: 'la-times', active: true },
 ] as const;
 
 function formatToday() {
